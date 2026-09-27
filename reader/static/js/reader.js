@@ -316,6 +316,7 @@ import {
     content: pagesEl,
     onPrevious: () => navigate(-1),
     onNext: () => navigate(1),
+    onCenterTap: () => toggleControlsFromTap(),
     isDisabled: () => loading,
   });
 
@@ -364,7 +365,22 @@ import {
     }
   });
 
-  reader.addEventListener('mousemove', showControls);
+  // On touch screens a tap is the only way to bring the toolbars back once they hide.
+  const toggleControlsFromTap = () => {
+    if (!document.fullscreenElement) return;
+    if (controlEls.some(el => el?.classList.contains('hidden'))) {
+      showControls();
+    } else {
+      clearTimeout(hideTimer);
+      setControlsVisible(false);
+    }
+  };
+
+  // Touch browsers also emit a compatibility mousemove on every tap, which would bring
+  // the toolbars back on each page turn; only a real mouse reveals them by moving.
+  reader.addEventListener('pointermove', (event) => {
+    if (event.pointerType === 'mouse') showControls();
+  });
 
   // --- Button events ---
 

@@ -49,6 +49,7 @@ export function createReaderInteractions({
   content,
   onPrevious,
   onNext,
+  onCenterTap = () => {},
   isDisabled = () => false,
 }) {
   if (!viewport || !content) {
@@ -62,6 +63,7 @@ export function createReaderInteractions({
   let constraintTimer = null;
   let lastTap = null;
   let pointer = null;
+  let centerTapTimer = null;
 
   const panzoom = Panzoom(content, {
     minScale: 1,
@@ -94,6 +96,11 @@ export function createReaderInteractions({
   const clearConstraintTimer = () => {
     window.clearTimeout(constraintTimer);
     constraintTimer = null;
+  };
+
+  const clearCenterTap = () => {
+    window.clearTimeout(centerTapTimer);
+    centerTapTimer = null;
   };
 
   // Panzoom's built-in containment does not account for a flex-centered element.
@@ -157,6 +164,9 @@ export function createReaderInteractions({
 
   const resetZoom = ({ animate = true } = {}) => {
     lastTap = null;
+    // A page turn can land inside the double-tap window of a center tap; without this the
+    // pending tap would toggle the toolbars on the new page.
+    clearCenterTap();
     clearConstraintTimer();
     if (!zoomed && panzoom.getScale() === 1) return;
     panzoom.reset({ ...animationOptions(animate), contain: false });
@@ -216,11 +226,20 @@ export function createReaderInteractions({
       distance(tap, lastTap) <= DOUBLE_TAP_DISTANCE_PX
     ) {
       lastTap = null;
+      clearCenterTap();
       if (zoomed) resetZoom();
       else zoomAt(tap.x, tap.y);
       return;
     }
     lastTap = tap;
+    // A single tap is only known once the double-tap window has passed without a second tap.
+    if (!zoomed) {
+      clearCenterTap();
+      centerTapTimer = window.setTimeout(() => {
+        centerTapTimer = null;
+        onCenterTap();
+      }, DOUBLE_TAP_MS);
+    }
   };
 
   const pointerDown = (event) => {
@@ -299,6 +318,7 @@ export function createReaderInteractions({
     content.removeEventListener('panzoomend', panEnd);
     window.removeEventListener('resize', resize);
     clearConstraintTimer();
+    clearCenterTap();
     panzoom.destroy();
     panzoom.resetStyle();
   };

@@ -115,3 +115,16 @@ def test_reader_mobile_menu_manages_focus_escape_and_layout_changes():
     assert "opening && event.detail === 0" in entrypoint
     assert "mobileReaderQuery.addEventListener('change', syncMobileActionsLayout)" in entrypoint
     assert "closeMobileActions(true)" in entrypoint
+
+
+def test_reader_toolbars_ignore_touch_compat_mouse_events_and_toggle_on_center_tap():
+    entrypoint = (PROJECT_ROOT / "reader" / "static" / "js" / "reader.js").read_text()
+    script = (PROJECT_ROOT / "reader" / "static" / "js" / "reader-interactions.js").read_text()
+
+    assert "addEventListener('mousemove', showControls)" not in entrypoint
+    assert "event.pointerType === 'mouse'" in entrypoint
+    assert "onCenterTap: () => toggleControlsFromTap()" in entrypoint
+    assert "onCenterTap = () => {}" in script
+    assert "clearCenterTap();\n      if (zoomed) resetZoom();" in script
+    assert "}, DOUBLE_TAP_MS);" in script
+    assert "clearCenterTap();\n    clearConstraintTimer();" in script
