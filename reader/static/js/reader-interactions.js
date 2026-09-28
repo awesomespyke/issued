@@ -6,6 +6,8 @@ export const NAV_EDGE_MAX_PX = 160;
 export const DOUBLE_TAP_MS = 300;
 export const DOUBLE_TAP_DISTANCE_PX = 40;
 export const PAN_THRESHOLD_PX = 6;
+export const SWIPE_THRESHOLD_PX = 50;
+export const SWIPE_AXIS_RATIO = 1.5;
 export const ZOOM_SCALE = 2;
 export const MOBILE_SPREAD_ZOOM_SCALE = 3;
 export const ZOOM_DURATION_MS = 200;
@@ -151,8 +153,8 @@ export function createReaderInteractions({
     viewport.setAttribute(
       'aria-label',
       value
-        ? 'Comic page zoomed – drag to pan, double-tap to reset'
-        : 'Comic page – tap near an edge to navigate, double-tap the center to zoom',
+        ? 'Comic page zoomed Ã¢â‚¬â€œ drag to pan, double-tap to reset'
+        : 'Comic page Ã¢â‚¬â€œ tap near an edge to navigate, double-tap the center to zoom',
     );
     panzoom.setOptions({
       contain: value && !customContainment ? 'outside' : false,
@@ -262,10 +264,37 @@ export function createReaderInteractions({
 
   const pointerUp = (event) => {
     if (!pointer || pointer.id !== event.pointerId) return;
+
+    const start = pointer.start;
     const moved = pointer.moved;
     pointer = null;
+
     try { viewport.releasePointerCapture(event.pointerId); } catch (_) { /* capture may already be lost */ }
-    if (moved || isDisabled()) return;
+
+    if (isDisabled()) return;
+
+    if (moved) {
+      if (zoomed) return;
+
+      const deltaX = event.clientX - start.x;
+      const deltaY = event.clientY - start.y;
+      const horizontalDistance = Math.abs(deltaX);
+      const verticalDistance = Math.abs(deltaY);
+
+      const isHorizontalSwipe =
+        horizontalDistance >= SWIPE_THRESHOLD_PX &&
+        horizontalDistance >= verticalDistance * SWIPE_AXIS_RATIO;
+
+      if (!isHorizontalSwipe) return;
+
+      lastTap = null;
+      clearCenterTap();
+      event.preventDefault();
+
+      if (deltaX < 0) onNext();
+      else onPrevious();
+      return;
+    }
 
     event.preventDefault();
     if (zoomed) {
