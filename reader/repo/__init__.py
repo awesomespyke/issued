@@ -1,4 +1,4 @@
-"""reader.repo – feature-domain repository sub-package.
+"""reader.repo â€“ feature-domain repository sub-package.
 
 Re-exports every public function so existing callers continue to work unchanged.
 """
@@ -10,6 +10,7 @@ from .folders import (
     get_subfolders_with_item_count,
     get_breadcrumbs_for_folder,
     get_folder_preview_thumbnails,
+    folder_is_leaf,
 )
 from .comics import (
     get_comics_in_folder,
@@ -45,18 +46,11 @@ from .series import (
     get_all_series_with_counts,
     get_comics_for_metadata_series,
 )
-from .ongoing import (
-    folder_is_leaf,
-    folder_comic_count,
-    is_ongoing_series,
-    set_ongoing_series,
-    list_ongoing_series_rows,
-)
 
 __all__ = [
     "get_top_folders", "add_folder_item_counts", "get_folder",
     "get_subfolders_with_item_count", "get_breadcrumbs_for_folder",
-    "get_folder_preview_thumbnails",
+    "get_folder_preview_thumbnails", "folder_is_leaf",
     "get_comics_in_folder", "get_last_added_comics", "get_continue_reading_comics",
     "get_series_comics", "get_series_comics_for_comic",
     "search_comics", "search_comics_grouped",
@@ -67,6 +61,4 @@ __all__ = [
     "get_tags_for_comic", "get_all_tags_with_counts",
     "get_comics_for_tag",
     "get_all_series_with_counts", "get_comics_for_metadata_series",
-    "folder_is_leaf", "folder_comic_count", "is_ongoing_series",
-    "set_ongoing_series", "list_ongoing_series_rows",
 ]

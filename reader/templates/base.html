@@ -63,7 +63,7 @@
         <div class="min-w-0 flex-1 flex justify-center px-0 lg:px-2">
           <form action="{{ url_path(request, 'browse_search') }}" method="get" role="search" class="w-full max-w-md">
             <input type="search" name="q" value="{{ request.query_params.get('q', '') }}"
-              placeholder="Search your comicsÃ¢â‚¬Â¦"
+              placeholder="Search your comicsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦"
               class="w-full rounded-xl border-2 border-violet-200 bg-white px-4 py-3 text-base placeholder-gray-400 shadow-sm transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-200 focus:outline-none touch-manipulation min-h-[44px] sm:py-2 sm:text-sm sm:min-h-0"
               aria-label="Search" inputmode="search" autocomplete="off">
           </form>
@@ -73,8 +73,6 @@
           aria-label="Main">
           <a href="{{ url_path(request, 'browse_root') }}"
             class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">Home</a>
-          <a href="{{ url_path(request, 'browse_ongoings') }}"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">Ongoing</a>
           <a href="{{ url_path(request, 'browse_series') }}"
             class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">Series</a>
           <a href="{{ url_path(request, 'browse_tags') }}"

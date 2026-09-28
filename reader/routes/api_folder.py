@@ -1,9 +1,8 @@
-"""Folder-level API routes: ongoing, preview, complete-all."""
+"""Folder-level API routes: preview and completion."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel
 
 from server.database import db_connection
 from .. import repo
@@ -11,26 +10,6 @@ from ._common import templates
 
 router = APIRouter(tags=["reader"])
 
-
-class OngoingUpdate(BaseModel):
-    ongoing: bool
-
-
-@router.patch("/api/folder/{folder_id:int}/ongoing")
-def api_folder_ongoing_patch(folder_id: int, body: OngoingUpdate):
-    """Mark or unmark a series folder as ongoing."""
-    with db_connection() as conn:
-        if not repo.get_folder(conn, folder_id):
-            raise HTTPException(status_code=404, detail="Folder not found")
-        if not repo.folder_is_leaf(conn, folder_id):
-            raise HTTPException(
-                status_code=400,
-                detail="Only series folders (no subfolders) can be marked ongoing",
-            )
-        if body.ongoing and repo.folder_comic_count(conn, folder_id) == 0:
-            raise HTTPException(status_code=400, detail="Folder has no comics")
-        repo.set_ongoing_series(conn, folder_id, body.ongoing)
-    return {"ok": True, "ongoing": body.ongoing}
 
 
 @router.get("/api/folder/{folder_id:int}/preview")
