@@ -17,9 +17,6 @@ router = APIRouter(tags=["reader"])
 # --- Pydantic models ---
 
 
-class TagsUpdate(BaseModel):
-    tags: list[str]
-
 
 class MetadataUpdate(BaseModel):
     title: str | None = None
@@ -134,33 +131,6 @@ def api_comic_tags_get(comic_uuid: str):
             raise HTTPException(status_code=404, detail="Comic not found")
         tags = repo.get_tags_for_comic(conn, comic_uuid)
         return {"tags": tags}
-
-
-@router.put("/api/comic/{comic_uuid}/tags")
-def api_comic_tags_put(comic_uuid: str, body: TagsUpdate):
-    """Replace tag list for a comic."""
-    with db_connection() as conn:
-        if repo.get_comic_id_by_uuid(conn, comic_uuid) is None:
-            raise HTTPException(status_code=404, detail="Comic not found")
-        tags = repo.set_tags_for_comic(conn, comic_uuid, body.tags)
-        return {"ok": True, "tags": tags}
-
-
-@router.get("/api/tags")
-def api_tags_list():
-    """JSON: all tag names in the library (for autocomplete)."""
-    with db_connection() as conn:
-        return {"tags": repo.get_all_tags(conn)}
-
-
-@router.delete("/api/tags/{tag_name}")
-def api_tag_delete(tag_name: str):
-    """Delete a tag globally (removes it from all comics)."""
-    with db_connection() as conn:
-        found = repo.delete_tag(conn, tag_name)
-    if not found:
-        raise HTTPException(status_code=404, detail="Tag not found")
-    return {"ok": True}
 
 
 # --- Progress ---

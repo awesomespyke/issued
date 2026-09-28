@@ -37,11 +37,8 @@ from .progress import (
 )
 from .tags import (
     get_tags_for_comic,
-    get_all_tags,
     get_all_tags_with_counts,
     get_comics_for_tag,
-    delete_tag,
-    set_tags_for_comic,
 )
 
 from .series import (
@@ -67,8 +64,8 @@ __all__ = [
     "get_metadata", "ensure_metadata_row", "update_metadata",
     "get_progress", "update_progress", "clear_progress",
     "mark_all_comics_in_folder_completed", "toggle_comic_completed",
-    "get_tags_for_comic", "get_all_tags", "get_all_tags_with_counts",
-    "get_comics_for_tag", "delete_tag", "set_tags_for_comic",
+    "get_tags_for_comic", "get_all_tags_with_counts",
+    "get_comics_for_tag",
     "get_all_series_with_counts", "get_comics_for_metadata_series",
     "folder_is_leaf", "folder_comic_count", "is_ongoing_series",
     "set_ongoing_series", "list_ongoing_series_rows",
