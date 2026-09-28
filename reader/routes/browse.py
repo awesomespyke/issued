@@ -133,7 +133,7 @@ def browse_search(request: Request, q: str = ""):
         request,
         "browser.html",
         {
-            "title": f"Search: {q} — {_library_title()}",
+            "title": f"Search: {q} â€” {_library_title()}",
             "breadcrumbs": [],
             "folders": [],
             "comics": [],
@@ -164,7 +164,7 @@ def browse_last_added(request: Request, limit: int = 50):
         request,
         "browser.html",
         {
-            "title": f"Last added — {_library_title()}",
+            "title": f"Last added â€” {_library_title()}",
             "breadcrumbs": [],
             "folders": [],
             "comics": comics,
@@ -225,7 +225,7 @@ def browse_folder(request: Request, folder_id: int):
         request,
         "browser.html",
         {
-            "title": f"{folder['name']} — {_library_title()}",
+            "title": f"{folder['name']} â€” {_library_title()}",
             "breadcrumbs": breadcrumbs,
             "folders": subfolders,
             "comics": comics,
@@ -263,7 +263,7 @@ def reader_view(
                     request,
                     "reader-error.html",
                     {
-                        "title": f"Comic unavailable — {_library_title()}",
+                        "title": f"Comic unavailable â€” {_library_title()}",
                         "message": "This comic is no longer available in the library.",
                         "return_url": request.url_for(
                             "browse_folder", folder_id=series_id
@@ -289,7 +289,7 @@ def reader_view(
         request,
         "reader.html",
         {
-            "title": f"{comic['filename']} — {_library_title()}",
+            "title": f"{comic['filename']} â€” {_library_title()}",
             "breadcrumbs": breadcrumbs,
             "comic_uuid": comic_uuid,
             "comic_filename": comic["filename"],
@@ -303,6 +303,54 @@ def reader_view(
     )
 
 
+# --- Browse: metadata series ---
+
+
+@router.get("/series")
+def browse_series(request: Request):
+    """Series index derived from embedded ComicInfo metadata."""
+    with db_connection() as conn:
+        series_rows = repo.get_all_series_with_counts(conn)
+    return templates.TemplateResponse(
+        request,
+        "series.html",
+        {
+            "title": f"Series — {_library_title()}",
+            "series_rows": series_rows,
+            "reader_auth_enabled": _reader_auth_enabled(),
+        },
+    )
+
+
+@router.get("/series/{series_name}")
+def browse_metadata_series(request: Request, series_name: str):
+    """Browse comics belonging to an embedded metadata series."""
+    with db_connection() as conn:
+        comics = repo.get_comics_for_metadata_series(conn, series_name)
+
+    if not comics:
+        raise HTTPException(status_code=404, detail="Series not found")
+
+    return templates.TemplateResponse(
+        request,
+        "browser.html",
+        {
+            "title": series_name,
+            "breadcrumbs": [],
+            "folders": [],
+            "comics": comics,
+            "grouped_comics": [],
+            "is_search": False,
+            "show_last_added": False,
+            "last_added_comics": [],
+            "continue_reading_comics": [],
+            "reader_auth_enabled": _reader_auth_enabled(),
+            "folder_id": None,
+            "is_leaf": False,
+            "is_ongoing": False,
+        },
+    )
+
 # --- Browse: tags ---
 
 
@@ -315,7 +363,7 @@ def browse_tags(request: Request):
         request,
         "tags.html",
         {
-            "title": f"Tags — {_library_title()}",
+            "title": f"Tags â€” {_library_title()}",
             "tag_rows": tag_rows,
             "reader_auth_enabled": _reader_auth_enabled(),
         },
@@ -331,7 +379,7 @@ def browse_tag(request: Request, tag_name: str):
         request,
         "browser.html",
         {
-            "title": f"Tag: {tag_name} — {_library_title()}",
+            "title": f"Tag: {tag_name} â€” {_library_title()}",
             "breadcrumbs": [],
             "folders": [],
             "comics": [],

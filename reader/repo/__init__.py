@@ -43,6 +43,11 @@ from .tags import (
     delete_tag,
     set_tags_for_comic,
 )
+
+from .series import (
+    get_all_series_with_counts,
+    get_comics_for_metadata_series,
+)
 from .ongoing import (
     folder_is_leaf,
     folder_comic_count,
@@ -64,6 +69,7 @@ __all__ = [
     "mark_all_comics_in_folder_completed", "toggle_comic_completed",
     "get_tags_for_comic", "get_all_tags", "get_all_tags_with_counts",
     "get_comics_for_tag", "delete_tag", "set_tags_for_comic",
+    "get_all_series_with_counts", "get_comics_for_metadata_series",
     "folder_is_leaf", "folder_comic_count", "is_ongoing_series",
     "set_ongoing_series", "list_ongoing_series_rows",
 ]
