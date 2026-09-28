@@ -224,7 +224,7 @@ def process_comic(
     try:
         stat = comic_path.stat()
     except (FileNotFoundError, PermissionError) as exc:
-        logger.error(f"✗ {comic_path.name} - Unable to stat: {exc}")
+        logger.error(f"âœ— {comic_path.name} - Unable to stat: {exc}")
         return None, False, True, False
 
     file_mtime = datetime.fromtimestamp(stat.st_mtime)
@@ -237,7 +237,7 @@ def process_comic(
     try:
         detected_format = detect_archive_format(comic_path)
     except Exception as exc:
-        logger.error(f"✗ {comic_path.name} - CORRUPT: {exc}")
+        logger.error(f"âœ— {comic_path.name} - CORRUPT: {exc}")
 
         if existing:
             deleted_uuids = repo.delete_comic_by_path(comic_path)
@@ -254,7 +254,7 @@ def process_comic(
     try:
         page_count = validate_and_count_pages(comic_path, detected_format)
     except Exception as exc:
-        logger.error(f"✗ {comic_path.name} - CORRUPT: {exc}")
+        logger.error(f"âœ— {comic_path.name} - CORRUPT: {exc}")
         
         if existing:
             deleted_uuids = repo.delete_comic_by_path(comic_path)
@@ -284,29 +284,42 @@ def process_comic(
     # Generate thumbnail
     thumb_success = generate_thumbnail_for_comic(comic.uuid, comic_path, config, repo)
 
-    # ComicInfo.xml metadata: parse when available; series from folder name only when leaf (never from ComicInfo <Series>)
+    # ComicInfo.xml metadata.
+    # Embedded ComicInfo is authoritative; folder-derived series is a fallback.
     comicinfo = read_comicinfo_from_archive(comic_path)
     is_leaf = not repo.folder_has_subfolders(folder_id)
     series_from_folder = comic_path.parent.name if is_leaf else None
-    
-    # Check if ComicInfo has actual data (not just an empty model)
+
     comicinfo_fields = comicinfo.model_dump(exclude_none=True) if comicinfo else {}
-    
+
+    # Tags are stored through the many-to-many tag index, not metadata.
+    embedded_tags = comicinfo_fields.pop("tags", None)
+
     if comicinfo_fields:
-        # Has ComicInfo data
+        series = comicinfo_fields.pop("series", None) or series_from_folder
         payload = ComicMetadataUpdate(
-            series=series_from_folder,
+            series=series,
             **comicinfo_fields,
         )
         repo.update_comic_metadata(comic.id, payload)
     elif series_from_folder is not None:
-        # No ComicInfo, but set series from folder name
-        repo.update_comic_metadata(comic.id, ComicMetadataUpdate(series=series_from_folder))
+        repo.update_comic_metadata(
+            comic.id,
+            ComicMetadataUpdate(series=series_from_folder),
+        )
+
+    # ComicInfo tags are authoritative for descriptive tags.
+    tags = (
+        [tag.strip() for tag in embedded_tags.split(",") if tag.strip()]
+        if embedded_tags
+        else []
+    )
+    repo.set_comic_tags(comic.id, tags)
 
     repo.commit()
 
     # Log with inline status
-    thumb_status = "✓" if thumb_success else "✗"
+    thumb_status = "âœ“" if thumb_success else "âœ—"
     logger.debug(f"{thumb_status} {comic_path.name} ({page_count} pages)")
 
     return comic.uuid, existing, False, thumb_success
@@ -395,7 +408,7 @@ def delete_path(path: Path, config: IssuedConfig) -> None:
                 logger.info(f"[-] Removed: {path.name}")
                 
         except Exception as e:
-            logger.error(f"✗ Failed to delete {path.name}: {e}")
+            logger.error(f"âœ— Failed to delete {path.name}: {e}")
 
 
 def move_path(src_path: Path, dest_path: Path, config: IssuedConfig) -> None:
@@ -423,7 +436,7 @@ def move_path(src_path: Path, dest_path: Path, config: IssuedConfig) -> None:
                 repo.commit()
                 
                 dest_rel = dest_path.relative_to(base_path)
-                logger.info(f"[→] Moved folder: {src_path.name} → {dest_rel}")
+                logger.info(f"[â†’] Moved folder: {src_path.name} â†’ {dest_rel}")
                 
             else:
                 # File moved
@@ -442,13 +455,13 @@ def move_path(src_path: Path, dest_path: Path, config: IssuedConfig) -> None:
                     session.add(comic)
                     repo.commit()
 
-                    logger.info(f"[→] Moved: {src_path.name} → {dest_path.name}")
+                    logger.info(f"[â†’] Moved: {src_path.name} â†’ {dest_path.name}")
                 else:
                     # Treat as new if not found
                     process_comic(dest_path, repo.get_or_create_folder(dest_path.parent).id, config, repo, False)
 
         except Exception as e:
-            logger.error(f"✗ Failed to move {src_path.name}: {e}")
+            logger.error(f"âœ— Failed to move {src_path.name}: {e}")
 
 
 def scan_library(

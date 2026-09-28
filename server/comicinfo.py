@@ -18,9 +18,11 @@ from .archive import get_archive
 # ComicInfo tag names (case-insensitive in XML). Series excluded.
 TAG_MAP = {
     "title": "title",
+    "series": "series",
     "writer": "writer",
     "penciller": "penciller",
-    "issue": "issue_number",
+    "artist": "artist",
+    "number": "issue_number",
     "month": "month",
     "year": "year",
     "notes": "notes",
@@ -29,30 +31,10 @@ TAG_MAP = {
     "languageiso": "language_iso",
     "genre": "genre",
     "publisher": "publisher",
+    "tags": "tags",
 }
-
-
 class ComicInfoParsed(BaseModel):
     """Metadata parsed from ComicInfo.xml (all optional)."""
-
-    model_config = {"extra": "ignore"}
-
-    title: Optional[str] = None
-    issue_number: Optional[int] = None
-    publisher: Optional[str] = None
-    year: Optional[int] = None
-    month: Optional[int] = None
-    writer: Optional[str] = None
-    penciller: Optional[str] = None
-    summary: Optional[str] = None
-    notes: Optional[str] = None
-    web: Optional[str] = None
-    language_iso: Optional[str] = None
-    genre: Optional[str] = None
-
-
-class ComicMetadataUpdate(BaseModel):
-    """Payload for updating comic metadata: ComicInfo fields + series (from folder when leaf)."""
 
     model_config = {"extra": "ignore"}
 
@@ -64,12 +46,33 @@ class ComicMetadataUpdate(BaseModel):
     month: Optional[int] = None
     writer: Optional[str] = None
     penciller: Optional[str] = None
+    artist: Optional[str] = None
     summary: Optional[str] = None
     notes: Optional[str] = None
     web: Optional[str] = None
     language_iso: Optional[str] = None
     genre: Optional[str] = None
+    tags: Optional[str] = None
 
+class ComicMetadataUpdate(BaseModel):
+    """Payload for updating persisted comic metadata."""
+
+    model_config = {"extra": "ignore"}
+
+    series: Optional[str] = None
+    title: Optional[str] = None
+    issue_number: Optional[int] = None
+    publisher: Optional[str] = None
+    year: Optional[int] = None
+    month: Optional[int] = None
+    writer: Optional[str] = None
+    penciller: Optional[str] = None
+    artist: Optional[str] = None
+    summary: Optional[str] = None
+    notes: Optional[str] = None
+    web: Optional[str] = None
+    language_iso: Optional[str] = None
+    genre: Optional[str] = None
 
 def _text(elem: Optional[ET.Element]) -> Optional[str]:
     if elem is None or elem.text is None:

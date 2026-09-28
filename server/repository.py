@@ -11,7 +11,7 @@ from typing import List, Optional, Set, Tuple
 
 from sqlmodel import Session, select, col, func
 
-from .models import Folder, Comic, ComicMetadata
+from .models import Folder, Comic, ComicMetadata, ComicTag, Tag
 from .config import IssuedConfig
 from .path_utils import to_relative, to_absolute
 from .comicinfo import ComicMetadataUpdate
@@ -286,6 +286,37 @@ class Repository:
         self.session.add(meta)
         self.session.flush()
 
+    def set_comic_tags(self, comic_id: int, tags: list[str]) -> None:
+        """Synchronize a comic's tags from authoritative embedded metadata."""
+        normalized = sorted(
+            {tag.strip() for tag in tags if tag.strip()},
+            key=str.casefold,
+        )
+
+        existing_links = self.session.exec(
+            select(ComicTag).where(ComicTag.comic_id == comic_id)
+        ).all()
+
+        for link in existing_links:
+            self.session.delete(link)
+
+        self.session.flush()
+
+        for name in normalized:
+            tag = self.session.exec(
+                select(Tag).where(Tag.name == name)
+            ).first()
+
+            if not tag:
+                tag = Tag(name=name)
+                self.session.add(tag)
+                self.session.flush()
+
+            self.session.add(
+                ComicTag(comic_id=comic_id, tag_id=tag.id)
+            )
+
+        self.session.flush()
     # --- Read Methods (used by thumbnails/main) ---
 
     def get_all_comics(self) -> List[Comic]:
