@@ -45,6 +45,7 @@ from .tags import (
 from .series import (
     get_all_series_with_counts,
     get_comics_for_metadata_series,
+    get_metadata_series_for_comic,
 )
 
 __all__ = [
@@ -60,5 +61,6 @@ __all__ = [
     "mark_all_comics_in_folder_completed", "toggle_comic_completed",
     "get_tags_for_comic", "get_all_tags_with_counts",
     "get_comics_for_tag",
-    "get_all_series_with_counts", "get_comics_for_metadata_series",
+   "get_all_series_with_counts", "get_comics_for_metadata_series",
+"get_metadata_series_for_comic",
 ]

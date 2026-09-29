@@ -45,15 +45,21 @@ def _series_navigation_context(request: Request, conn, comic_uuid: str) -> dict 
     navigation = series.get_series_navigation(conn, comic_uuid)
     if navigation is None:
         return None
-    folder_id = navigation["folder_id"]
-    navigation["return_url"] = request.url_for("browse_folder", folder_id=folder_id).path
+
+    series_name = navigation["series_name"]
+    navigation["return_url"] = request.url_for(
+        "browse_metadata_series",
+        series_name=series_name,
+    ).path
+
     for direction in ("previous", "next"):
         comic = navigation[direction]
         if comic:
-            comic["reader_url"] = _comic_reader_path(request, comic, folder_id)
+            comic["reader_url"] = _comic_reader_path(request, comic, None)
             comic["thumbnail_url"] = request.url_for(
                 "get_thumbnail", comic_uuid=comic["uuid"]
             ).path
+
     return navigation
 
 

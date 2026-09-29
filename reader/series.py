@@ -92,12 +92,11 @@ def get_continue_series(conn, folder_id: int) -> dict[str, Any]:
 
 
 def get_series_navigation(conn, comic_uuid: str) -> dict[str, Any] | None:
-    """Return previous/next issue context for a comic's direct parent folder."""
-    result = repo.get_series_comics_for_comic(conn, comic_uuid)
+    """Return previous/next issue context from embedded Series metadata."""
+    result = repo.get_metadata_series_for_comic(conn, comic_uuid)
     if result is None:
         return None
-    folder_id, rows = result
-    comics = _ordered(rows)
+    series_name, comics = result
     try:
         index = next(i for i, comic in enumerate(comics) if comic["uuid"] == comic_uuid)
     except StopIteration:
@@ -108,7 +107,7 @@ def get_series_navigation(conn, comic_uuid: str) -> dict[str, Any] | None:
     following = comics[index + 1] if index + 1 < len(comics) else None
     return {
         "context": "series",
-        "folder_id": folder_id,
+        "series_name": series_name,
         "position": index + 1,
         "total": len(comics),
         "previous": _comic_summary(previous),
