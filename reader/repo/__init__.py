@@ -39,9 +39,9 @@ from .progress import (
 from .tags import (
     get_tags_for_comic,
     get_all_tags_with_counts,
+    get_popular_tags,
     get_comics_for_tag,
 )
-
 from .series import (
     get_all_series_with_counts,
     get_comics_for_metadata_series,
@@ -60,7 +60,7 @@ __all__ = [
     "get_progress", "update_progress", "clear_progress",
     "mark_all_comics_in_folder_completed", "toggle_comic_completed",
     "get_tags_for_comic", "get_all_tags_with_counts",
-    "get_comics_for_tag",
+    "get_comics_for_tag", "get_popular_tags",
    "get_all_series_with_counts", "get_comics_for_metadata_series",
 "get_metadata_series_for_comic",
 ]

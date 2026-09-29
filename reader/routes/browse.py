@@ -71,6 +71,7 @@ def browse_root(request: Request):
     """Browse root: first level (single folder contents or folder list + last added)."""
     with db_connection() as conn:
         top_folders = repo.get_top_folders(conn)
+        popular_tags = repo.get_popular_tags(conn, 12)
 
         if len(top_folders) == 1:
             folder_id = top_folders[0]["id"]
@@ -96,6 +97,7 @@ def browse_root(request: Request):
                     "show_last_added": False,
                     "last_added_comics": [],
                     "continue_reading_comics": continue_reading,
+                    "homepage_tags": popular_tags,
                     "reader_auth_enabled": _reader_auth_enabled(),
                     "folder_id": folder_id,
                     "series_continue": series_continue,
@@ -118,12 +120,12 @@ def browse_root(request: Request):
                 "show_last_added": False,
                 "last_added_comics": [],
                 "continue_reading_comics": continue_reading,
+                "homepage_tags": popular_tags,
                 "reader_auth_enabled": _reader_auth_enabled(),
                 "folder_id": None,
                 "is_leaf": False,
             },
         )
-
 
 # --- Browse: search ---
 

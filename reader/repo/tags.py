@@ -36,6 +36,20 @@ def get_all_tags_with_counts(conn) -> list[dict]:
     )
     return [dict(row) for row in cur.fetchall()]
 
+def get_popular_tags(conn, limit: int = 12) -> list[dict]:
+    """Most-used tags for discovery on the Comics homepage."""
+    cur = conn.execute(
+        """
+        SELECT t.name, COUNT(ct.comic_id) AS comic_count
+        FROM tags t
+        INNER JOIN comic_tags ct ON ct.tag_id = t.id
+        GROUP BY t.id
+        ORDER BY comic_count DESC, t.name COLLATE NOCASE
+        LIMIT ?
+        """,
+        (limit,),
+    )
+    return [dict(row) for row in cur.fetchall()]
 
 def get_comics_for_tag(conn, tag_name: str) -> list[dict]:
     """All comics with the given tag, grouped by folder."""
