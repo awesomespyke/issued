@@ -49,7 +49,7 @@
     <div class="layout-container mx-auto max-w-6xl px-3 sm:px-4">
       <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
         <div class="flex shrink-0 justify-center lg:justify-start lg:w-[min(24rem,38%)]">
-          <a href="{{ url_path(request, 'browse_root') }}" class="spykespace-brand no-underline touch-manipulation hover:opacity-80 transition-all" title="Spykespace"><span class="spykespace-wordmark">SPYKESPACE</span><span class="spykespace-credit">an Issued hack</span></a>
+          <div class="spykespace-brand"><a href="{{ url_path(request, 'browse_root') }}" class="spykespace-wordmark no-underline touch-manipulation hover:opacity-80 transition-all" title="Spykespace Library">SPYKESPACE LIBRARY</a><span class="spykespace-credit"><a href="https://spyke.space/" class="spykespace-home-link">&larr; spyke.space</a> &middot; an Issued hack</span></div>
         </div>
         <div class="min-w-0 flex-1 flex justify-center px-0 lg:px-2">
           <form action="{{ url_path(request, 'browse_search') }}" method="get" role="search" class="w-full max-w-md">
@@ -62,13 +62,11 @@
           class="flex shrink-0 flex-nowrap items-center justify-center gap-1 sm:gap-2 lg:justify-end lg:w-[min(20rem,32%)]"
           aria-label="Main">
           <a href="{{ url_path(request, 'browse_root') }}"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">Home</a>
+            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">Comics</a>
           <a href="{{ url_path(request, 'browse_series') }}"
             class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">Series</a>
           <a href="{{ url_path(request, 'browse_tags') }}"
             class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">Tags</a>
-          <a href="{{ url_path(request, 'browse_last_added') }}"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">New</a>
           {% if reader_auth_enabled %}
           <form action="{{ url_path(request, 'reader_logout') }}" method="post" class="inline">
             <button type="submit"
@@ -92,7 +90,7 @@
         <a href="{{ url_path(request, 'browse_root') }}"
           class="flex items-center gap-1 text-violet-600 hover:text-violet-700" aria-label="Home">
           <i data-lucide="house" class="h-[18px] w-[18px]"></i>
-          <span class="font-medium">Home</span>
+          <span class="font-medium">Comics</span>
         </a>
         {% for crumb in breadcrumbs %}
         <span class="text-gray-300">/</span>
@@ -117,3 +115,8 @@
 </body>
 
 </html>
+
+
+
+
+
