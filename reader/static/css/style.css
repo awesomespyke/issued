@@ -96,6 +96,10 @@
   will-change: transform;
 }
 
+.reader-image-wrap {
+  touch-action: pan-y;
+}
+
 .reader-image-wrap.is-zoomed {
   cursor: grab;
   touch-action: none;
@@ -965,4 +969,36 @@ html[data-theme="dark"] .swal2-html-container {
   .bg-white\/90 {
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
+}
+
+/* --- Spykespace branding --- */
+.spykespace-brand {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.spykespace-wordmark {
+  display: block;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(1.65rem, 3vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+  background: linear-gradient(to right, #7c3aed, #9333ea, #db2777);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.spykespace-credit {
+  display: block;
+  margin-top: 0.45rem;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8b5cf6;
 }

@@ -78,7 +78,7 @@ export function createReaderInteractions({
     duration: ZOOM_DURATION_MS,
     easing: ZOOM_EASING,
     cursor: 'default',
-    touchAction: 'manipulation',
+    touchAction: 'pan-y',
     handleStartEvent: () => {},
   });
 
@@ -153,14 +153,14 @@ export function createReaderInteractions({
     viewport.setAttribute(
       'aria-label',
       value
-        ? 'Comic page zoomed Ã¢â‚¬â€œ drag to pan, double-tap to reset'
-        : 'Comic page Ã¢â‚¬â€œ tap near an edge to navigate, double-tap the center to zoom',
+        ? 'Comic page zoomed - drag to pan, double-tap to reset'
+        : 'Comic page - tap near an edge to navigate, double-tap the center to zoom',
     );
     panzoom.setOptions({
       contain: value && !customContainment ? 'outside' : false,
       disablePan: !value,
       maxScale: value ? targetScale : ZOOM_SCALE,
-      touchAction: value ? 'none' : 'manipulation',
+      touchAction: value ? 'none' : 'pan-y',
     });
   };
 
@@ -359,3 +359,6 @@ export function createReaderInteractions({
     toggleZoomAtCenter,
   };
 }
+
+
+

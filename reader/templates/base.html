@@ -48,23 +48,13 @@
   <header class="site-header border-b border-violet-100 bg-white/80 py-3 sm:py-4 backdrop-blur-md shadow-sm">
     <div class="layout-container mx-auto max-w-6xl px-3 sm:px-4">
       <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
-        <div class="flex shrink-0 justify-center lg:justify-start lg:w-[min(14rem,28%)]">
-          <a href="{{ url_path(request, 'browse_root') }}"
-            class="font-mono text-base font-bold tracking-tight no-underline sm:text-xl touch-manipulation hover:opacity-80 transition-all inline-block"
-            title="Library">
-            <pre
-              class="m-0 whitespace-pre text-[0.4rem] leading-tight sm:text-[0.5rem] bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 bg-clip-text text-transparent"> __     ______     ______     __  __     ______     _____    
-/\ \   /\  ___\   /\  ___\   /\ \/\ \   /\  ___\   /\  __-.  
-\ \ \  \ \___  \  \ \___  \  \ \ \_\ \  \ \  __\   \ \ \/\ \ 
- \ \_\  \/\_____\  \/\_____\  \ \_____\  \ \_____\  \ \____- 
-  \/_/   \/_____/   \/_____/   \/_____/   \/_____/   \/____/</pre>
-          </a>
+        <div class="flex shrink-0 justify-center lg:justify-start lg:w-[min(24rem,38%)]">
+          <a href="{{ url_path(request, 'browse_root') }}" class="spykespace-brand no-underline touch-manipulation hover:opacity-80 transition-all" title="Spykespace"><span class="spykespace-wordmark">SPYKESPACE</span><span class="spykespace-credit">an Issued hack</span></a>
         </div>
         <div class="min-w-0 flex-1 flex justify-center px-0 lg:px-2">
           <form action="{{ url_path(request, 'browse_search') }}" method="get" role="search" class="w-full max-w-md">
             <input type="search" name="q" value="{{ request.query_params.get('q', '') }}"
-              placeholder="Search your comicsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦"
-              class="w-full rounded-xl border-2 border-violet-200 bg-white px-4 py-3 text-base placeholder-gray-400 shadow-sm transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-200 focus:outline-none touch-manipulation min-h-[44px] sm:py-2 sm:text-sm sm:min-h-0"
+              placeholder="Search your comics..."
               aria-label="Search" inputmode="search" autocomplete="off">
           </form>
         </div>
@@ -78,7 +68,7 @@
           <a href="{{ url_path(request, 'browse_tags') }}"
             class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">Tags</a>
           <a href="{{ url_path(request, 'browse_last_added') }}"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">Recent</a>
+            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-800 touch-manipulation">New</a>
           {% if reader_auth_enabled %}
           <form action="{{ url_path(request, 'reader_logout') }}" method="post" class="inline">
             <button type="submit"

@@ -132,7 +132,7 @@ def browse_search(request: Request, q: str = ""):
         request,
         "browser.html",
         {
-            "title": f"Search: {q} Ã¢â‚¬â€ {_library_title()}",
+            "title": f"Search: {q} - {_library_title()}",
             "breadcrumbs": [],
             "folders": [],
             "comics": [],
@@ -162,7 +162,7 @@ def browse_last_added(request: Request, limit: int = 50):
         request,
         "browser.html",
         {
-            "title": f"Last added Ã¢â‚¬â€ {_library_title()}",
+            "title": "Newly Added",
             "breadcrumbs": [],
             "folders": [],
             "comics": comics,
@@ -203,7 +203,7 @@ def browse_folder(request: Request, folder_id: int):
         request,
         "browser.html",
         {
-            "title": f"{folder['name']} Ã¢â‚¬â€ {_library_title()}",
+            "title": f"{folder['name']} - {_library_title()}",
             "breadcrumbs": breadcrumbs,
             "folders": subfolders,
             "comics": comics,
@@ -241,7 +241,7 @@ def reader_view(
                     request,
                     "reader-error.html",
                     {
-                        "title": f"Comic unavailable Ã¢â‚¬â€ {_library_title()}",
+                        "title": f"Comic unavailable - {_library_title()}",
                         "message": "This comic is no longer available in the library.",
                         "return_url": request.url_for(
                             "browse_folder", folder_id=series_id
@@ -267,7 +267,7 @@ def reader_view(
         request,
         "reader.html",
         {
-            "title": f"{comic['filename']} Ã¢â‚¬â€ {_library_title()}",
+            "title": f"{comic['filename']} - {_library_title()}",
             "breadcrumbs": breadcrumbs,
             "comic_uuid": comic_uuid,
             "comic_filename": comic["filename"],
@@ -293,7 +293,7 @@ def browse_series(request: Request):
         request,
         "series.html",
         {
-            "title": f"Series â€” {_library_title()}",
+            "title": f"Series - {_library_title()}",
             "series_rows": series_rows,
             "reader_auth_enabled": _reader_auth_enabled(),
         },
@@ -340,7 +340,7 @@ def browse_tags(request: Request):
         request,
         "tags.html",
         {
-            "title": f"Tags Ã¢â‚¬â€ {_library_title()}",
+            "title": f"Tags - {_library_title()}",
             "tag_rows": tag_rows,
             "reader_auth_enabled": _reader_auth_enabled(),
         },
@@ -356,7 +356,7 @@ def browse_tag(request: Request, tag_name: str):
         request,
         "browser.html",
         {
-            "title": f"Tag: {tag_name} Ã¢â‚¬â€ {_library_title()}",
+            "title": f"Tag: {tag_name} - {_library_title()}",
             "breadcrumbs": [],
             "folders": [],
             "comics": [],

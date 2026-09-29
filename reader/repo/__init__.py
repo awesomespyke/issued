@@ -1,4 +1,4 @@
-"""reader.repo â€“ feature-domain repository sub-package.
+"""reader.repo - feature-domain repository sub-package.
 
 Re-exports every public function so existing callers continue to work unchanged.
 """

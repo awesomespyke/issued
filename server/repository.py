@@ -163,6 +163,12 @@ class Repository:
         uuids = [c.uuid for c in comics]
 
         for comic in comics:
+            tag_links = self.session.exec(
+                select(ComicTag).where(ComicTag.comic_id == comic.id)
+            ).all()
+            for link in tag_links:
+                self.session.delete(link)
+            self.session.flush()
             self.session.delete(comic)
 
         self.session.flush()
@@ -176,6 +182,12 @@ class Repository:
         uuids = [c.uuid for c in comics]
 
         for comic in comics:
+            tag_links = self.session.exec(
+                select(ComicTag).where(ComicTag.comic_id == comic.id)
+            ).all()
+            for link in tag_links:
+                self.session.delete(link)
+            self.session.flush()
             self.session.delete(comic)
 
         self.session.flush()

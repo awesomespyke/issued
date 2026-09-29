@@ -16,7 +16,7 @@ from ..repo.folders import get_folder
 if getattr(sys, "frozen", False):
     _base = Path(sys._MEIPASS) / "reader"
 else:
-    _base = Path(__file__).resolve().parent.parent  # reader/routes/ â†’ reader/
+    _base = Path(__file__).resolve().parent.parent  # reader/routes/ -> reader/
 
 TEMPLATES_DIR = _base / "templates"
 STATIC_DIR = _base / "static"

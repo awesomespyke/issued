@@ -80,7 +80,6 @@
   </div>
   {% endif %}
 
-  {% include 'partials/continue-reading.html' %}
 
   {% include 'partials/last-added.html' %}
 
@@ -99,10 +98,9 @@
   {% endif %}
 </div>
 
-{% include 'partials/info-panel.html' %}
+
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_path(request, 'reader_static', path='/js/folder-preview.js') }}"></script>
-{% include 'partials/tag-editor.html' %}
 <script src="{{ url_path(request, 'reader_static', path='/js/browser.js') }}"></script>
 {% endblock %}

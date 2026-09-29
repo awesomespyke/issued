@@ -72,7 +72,7 @@ def folder_is_leaf(conn, folder_id: int) -> bool:
 
 def get_folder_preview_thumbnails(conn, folder_id: int, limit: int = 3) -> list[str]:
     """Comic UUIDs for folder preview stack.
-    - Leaf folder (series): last N added comics; if only 1 comic â†’ 1 UUID (single cover).
+    - Leaf folder (series): last N added comics; if only 1 comic -> 1 UUID (single cover).
     - Container with 1 direct child (1 subfolder): 1 UUID (single cover), last added in subtree.
     - Container with 2+ direct children: up to limit UUIDs, one per child when possible.
     """
@@ -97,7 +97,7 @@ def get_folder_preview_thumbnails(conn, folder_id: int, limit: int = 3) -> list[
         )
         return [row["uuid"] for row in cur.fetchall()]
 
-    # Container with exactly 1 direct child â†’ show single cover (last added in subtree)
+    # Container with exactly 1 direct child -> show single cover (last added in subtree)
     if direct_children_count == 1:
         cur = conn.execute(
             """

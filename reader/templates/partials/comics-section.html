@@ -79,12 +79,6 @@
           %}
         </td>
         <td class="py-2 pr-3 text-center">
-          <button type="button" hx-get="/reader/api/comic/{{ c.uuid }}/metadata" hx-target="#comic-info-form"
-            hx-swap="none"
-            class="comic-info-btn flex h-7 w-7 items-center justify-center rounded-full text-gray-300 transition hover:bg-violet-100 hover:text-violet-700 active:scale-95 touch-manipulation opacity-0 group-hover:opacity-100"
-            data-comic-uuid="{{ c.uuid }}" title="Edit metadata">
-            <i data-lucide="square-pen" class="h-[13px] w-[13px]"></i>
-          </button>
         </td>
       </tr>
       {% endfor %}
@@ -151,12 +145,6 @@
               <img src="{{ url_path(request, 'get_thumbnail', comic_uuid=c.uuid) }}" alt=""
                 class="h-full w-full object-cover" loading="lazy">
             </a>
-            <button type="button" hx-get="/reader/api/comic/{{ c.uuid }}/metadata" hx-target="#comic-info-form"
-              hx-swap="none"
-              class="comic-info-btn comic-cover-btn absolute right-2 top-2 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-md backdrop-blur-sm transition opacity-0 hover:bg-white active:scale-95 touch-manipulation"
-              data-comic-uuid="{{ c.uuid }}" title="Edit metadata">
-              <i data-lucide="square-pen" class="h-[14px] w-[14px]"></i>
-            </button>
             <a href="{{ url_path(request, 'reader_view', comic_uuid=c.uuid) }}"
               class="comic-cover-btn absolute inset-0 z-20 flex items-center justify-center opacity-0 transition-opacity pointer-events-none">
               <span
@@ -199,12 +187,6 @@
             <img src="{{ url_path(request, 'get_thumbnail', comic_uuid=c.uuid) }}" alt=""
               class="h-full w-full object-cover" loading="lazy">
           </a>
-          <button type="button" hx-get="/reader/api/comic/{{ c.uuid }}/metadata" hx-target="#comic-info-form"
-            hx-swap="none"
-            class="comic-info-btn comic-cover-btn absolute right-2 top-2 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-md backdrop-blur-sm transition opacity-0 hover:bg-white active:scale-95 touch-manipulation"
-            data-comic-uuid="{{ c.uuid }}" title="Edit metadata">
-            <i data-lucide="square-pen" class="h-[14px] w-[14px]"></i>
-          </button>
           <a href="{{ url_path(request, 'reader_view', comic_uuid=c.uuid) }}"
             class="comic-cover-btn absolute inset-0 z-20 flex items-center justify-center opacity-0 transition-opacity pointer-events-none">
             <span
