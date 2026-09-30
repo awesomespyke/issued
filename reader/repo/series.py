@@ -72,7 +72,6 @@ def get_metadata_series_for_comic(conn, comic_uuid: str) -> tuple[str, list[dict
         WHERE c.uuid = ?
           AND m.series IS NOT NULL
           AND TRIM(m.series) != ''
-          AND "" + explicit_filter(show_explicit) + ""
         """,
         (comic_uuid,),
     )
