@@ -1,13 +1,18 @@
 """Comic list queries for the web reader."""
 
 from __future__ import annotations
+EXPLICIT_FILTER = "COALESCE(m.age_rating, '') != 'X18+'"
 
+
+def explicit_filter(show_explicit: bool) -> str:
+    """SQL predicate for browse/discovery queries."""
+    return "1 = 1" if show_explicit else EXPLICIT_FILTER
 
 _COMICS_WITH_META = """
     SELECT c.uuid, c.filename, c.page_count,
            (m.is_completed = 1) AS is_completed,
            m.title, m.publisher, m.year, m.artist, m.writer, m.penciller,
-           m.score, m.last_read_at,
+           m.score, m.last_read_at, m.age_rating,
            f.name AS folder_name
     FROM comics c
     LEFT JOIN metadata m ON m.comic_id = c.id
@@ -15,10 +20,11 @@ _COMICS_WITH_META = """
 """
 
 
-def get_comics_in_folder(conn, folder_id: int) -> list[dict]:
-    """Comics in folder with is_completed."""
+def get_comics_in_folder(conn, folder_id: int, show_explicit: bool = True) -> list[dict]:
+    """Comics in folder with is_completed, optionally hiding explicit titles."""
     cur = conn.execute(
-        _COMICS_WITH_META + " WHERE c.folder_id = ? ORDER BY c.filename",
+        _COMICS_WITH_META
+        + f" WHERE c.folder_id = ? AND {explicit_filter(show_explicit)} ORDER BY c.filename",
         (folder_id,),
     )
     return [dict(row) for row in cur.fetchall()]
@@ -53,22 +59,23 @@ def get_series_comics_for_comic(conn, comic_uuid: str) -> tuple[int, list[dict]]
     return folder_id, get_series_comics(conn, folder_id)
 
 
-def get_last_added_comics(conn, limit: int = 24) -> list[dict]:
+def get_last_added_comics(conn, limit: int = 24, show_explicit: bool = True) -> list[dict]:
     """Comics ordered by last_scanned_at DESC with is_completed."""
     cur = conn.execute(
-        _COMICS_WITH_META + " ORDER BY c.last_scanned_at DESC LIMIT ?",
+        _COMICS_WITH_META + f" WHERE {explicit_filter(show_explicit)} ORDER BY c.last_scanned_at DESC LIMIT ?",
         (limit,),
     )
     return [dict(row) for row in cur.fetchall()]
 
 
-def get_continue_reading_comics(conn, limit: int = 12) -> list[dict]:
+def get_continue_reading_comics(conn, limit: int = 12, show_explicit: bool = True) -> list[dict]:
     """Comics in progress (not completed), with current_page and is_completed."""
     cur = conn.execute(
         """SELECT c.uuid, c.filename, c.page_count, m.current_page, (m.is_completed = 1) AS is_completed
            FROM comics c INNER JOIN metadata m ON m.comic_id = c.id
            WHERE (m.current_page IS NOT NULL AND m.current_page > 0 OR m.last_read_at IS NOT NULL)
              AND (m.is_completed IS NULL OR m.is_completed = 0)
+             AND """ + explicit_filter(show_explicit) + """
            ORDER BY m.last_read_at IS NULL, m.last_read_at DESC
            LIMIT ?""",
         (limit,),
@@ -76,7 +83,7 @@ def get_continue_reading_comics(conn, limit: int = 12) -> list[dict]:
     return [dict(row) for row in cur.fetchall()]
 
 
-def search_comics(conn, q: str) -> list[dict]:
+def search_comics(conn, q: str, show_explicit: bool = True) -> list[dict]:
     """Comics matching q in filename/title/series/tags, with is_completed."""
     if not q or not q.strip():
         return []
@@ -87,14 +94,14 @@ def search_comics(conn, q: str) -> list[dict]:
          LEFT JOIN comic_tags ct ON ct.comic_id = c.id
          LEFT JOIN tags t ON t.id = ct.tag_id
         """
-        + " WHERE c.filename LIKE ? OR m.title LIKE ? OR m.series LIKE ? OR t.name LIKE ?"
+        + f" WHERE {explicit_filter(show_explicit)} AND (c.filename LIKE ? OR m.title LIKE ? OR m.series LIKE ? OR t.name LIKE ?)"
         + " GROUP BY c.id ORDER BY c.filename",
         (like, like, like, like),
     )
     return [dict(row) for row in cur.fetchall()]
 
 
-def search_comics_grouped(conn, q: str) -> list[dict]:
+def search_comics_grouped(conn, q: str, show_explicit: bool = True) -> list[dict]:
     """Comics matching q grouped by parent folder (series), ordered by folder name then filename."""
     if not q or not q.strip():
         return []
@@ -105,7 +112,7 @@ def search_comics_grouped(conn, q: str) -> list[dict]:
          LEFT JOIN comic_tags ct ON ct.comic_id = c.id
          LEFT JOIN tags t ON t.id = ct.tag_id
         """
-        + " WHERE c.filename LIKE ? OR m.title LIKE ? OR m.series LIKE ? OR t.name LIKE ?"
+        + f" WHERE {explicit_filter(show_explicit)} AND (c.filename LIKE ? OR m.title LIKE ? OR m.series LIKE ? OR t.name LIKE ?)"
         + " GROUP BY c.id ORDER BY f.name, c.filename",
         (like, like, like, like),
     )

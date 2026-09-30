@@ -2,6 +2,7 @@
   const widthStorageKey = 'issued-layout-width';
   const sizeStorageKey = 'issued-thumbnail-size';
   const borderlessStorageKey = 'issued-borderless-collage';
+  const explicitStorageKey = 'issued-show-explicit';
   const validWidths = ['fixed', 'full'];
   const validSizes = ['tiny', 'extra-small', 'small', 'medium', 'large', 'extra-large', 'huge'];
   const sizeLabels = {
@@ -20,6 +21,7 @@
   const decreaseButton = document.getElementById('thumbnail-size-decrease');
   const increaseButton = document.getElementById('thumbnail-size-increase');
   const borderlessToggle = document.getElementById('borderless-collage-toggle');
+  const explicitToggle = document.getElementById('show-explicit-toggle');
 
   const persist = (key, value) => {
     try {
@@ -53,9 +55,34 @@
     if (shouldPersist) persist(borderlessStorageKey, String(isEnabled));
   };
 
+  const applyExplicit = async (enabled, shouldPersist = false) => {
+    const isEnabled = enabled === true || enabled === 'true';
+    root.dataset.showExplicit = String(isEnabled);
+    explicitToggle?.setAttribute('aria-checked', String(isEnabled));
+
+    if (shouldPersist) {
+      persist(explicitStorageKey, String(isEnabled));
+
+      const response = await fetch(
+        `/reader/api/preferences/show-explicit?show=${isEnabled}`,
+        {
+          method: 'POST',
+          credentials: 'same-origin',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to save explicit-content preference: ${response.status}`);
+      }
+
+      window.location.reload();
+    }
+  };
+
   applyWidth(root.dataset.layoutWidth);
   applySize(root.dataset.thumbnailSize);
   applyBorderless(root.dataset.borderless);
+  applyExplicit(root.dataset.showExplicit);
 
   if (!toggle || !panel) return;
 
@@ -86,6 +113,10 @@
 
   borderlessToggle?.addEventListener('click', () => {
     applyBorderless(root.dataset.borderless !== 'true', true);
+  });
+
+  explicitToggle?.addEventListener('click', () => {
+    applyExplicit(root.dataset.showExplicit !== 'true', true);
   });
 
   document.addEventListener('click', (event) => {

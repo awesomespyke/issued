@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .comics import explicit_filter
+
 
 def get_top_folders(conn) -> list[dict]:
     """Top-level folders (parent_id IS NULL), ordered by name."""
@@ -11,15 +13,24 @@ def get_top_folders(conn) -> list[dict]:
     return [dict(row) for row in cur.fetchall()]
 
 
-def add_folder_item_counts(conn, folders: list[dict]) -> None:
-    """Mutate each folder dict adding item_count (subfolders + comics)."""
+def add_folder_item_counts(conn, folders: list[dict], show_explicit: bool = True) -> None:
+    """Mutate each folder dict adding item_count (subfolders + visible comics)."""
     for f in folders:
-        cur = conn.execute(
-            "SELECT (SELECT COUNT(*) FROM folders WHERE parent_id = ?) + (SELECT COUNT(*) FROM comics WHERE folder_id = ?)",
-            (f["id"], f["id"]),
-        )
-        f["item_count"] = cur.fetchone()[0]
+        sql = """
+            SELECT
+                (SELECT COUNT(*) FROM folders WHERE parent_id = ?)
+                +
+                (
+                    SELECT COUNT(*)
+                    FROM comics c
+                    LEFT JOIN metadata m ON m.comic_id = c.id
+                    WHERE c.folder_id = ?
+        """
+        sql += f" AND {explicit_filter(show_explicit)}"
+        sql += ")"
 
+        cur = conn.execute(sql, (f["id"], f["id"]))
+        f["item_count"] = cur.fetchone()[0]
 
 def get_folder(conn, folder_id: int) -> dict | None:
     """Single folder by id, or None if not found."""
@@ -31,14 +42,14 @@ def get_folder(conn, folder_id: int) -> dict | None:
     return dict(row) if row else None
 
 
-def get_subfolders_with_item_count(conn, folder_id: int) -> list[dict]:
+def get_subfolders_with_item_count(conn, folder_id: int, show_explicit: bool = True) -> list[dict]:
     """Direct subfolders of folder_id with item_count set."""
     cur = conn.execute(
         "SELECT id, name FROM folders WHERE parent_id = ? ORDER BY name",
         (folder_id,),
     )
     subfolders = [dict(row) for row in cur.fetchall()]
-    add_folder_item_counts(conn, subfolders)
+    add_folder_item_counts(conn, subfolders, show_explicit)
     return subfolders
 
 
@@ -70,13 +81,13 @@ def folder_is_leaf(conn, folder_id: int) -> bool:
     return int(cur.fetchone()["c"]) == 0
 
 
-def get_folder_preview_thumbnails(conn, folder_id: int, limit: int = 3) -> list[str]:
-    """Comic UUIDs for folder preview stack.
-    - Leaf folder (series): last N added comics; if only 1 comic -> 1 UUID (single cover).
-    - Container with 1 direct child (1 subfolder): 1 UUID (single cover), last added in subtree.
-    - Container with 2+ direct children: up to limit UUIDs, one per child when possible.
-    """
-    # Check if folder is leaf (no subfolders)
+def get_folder_preview_thumbnails(
+    conn,
+    folder_id: int,
+    limit: int = 3,
+    show_explicit: bool = True,
+) -> list[str]:
+    """Comic UUIDs for folder preview stack, respecting explicit visibility."""
     cur = conn.execute(
         "SELECT COUNT(*) as cnt FROM folders WHERE parent_id = ?",
         (folder_id,),
@@ -85,53 +96,59 @@ def get_folder_preview_thumbnails(conn, folder_id: int, limit: int = 3) -> list[
     has_subfolders = direct_children_count > 0
 
     if not has_subfolders:
-        # Leaf folder (series): get last N added comics
-        cur = conn.execute(
-            """
-            SELECT c.uuid FROM comics c
+        sql = """
+            SELECT c.uuid
+            FROM comics c
+            LEFT JOIN metadata m ON m.comic_id = c.id
             WHERE c.folder_id = ?
+        """
+        sql += f" AND {explicit_filter(show_explicit)}"
+        sql += """
             ORDER BY c.last_scanned_at DESC
             LIMIT ?
-            """,
-            (folder_id, limit),
-        )
+        """
+        cur = conn.execute(sql, (folder_id, limit))
         return [row["uuid"] for row in cur.fetchall()]
 
-    # Container with exactly 1 direct child -> show single cover (last added in subtree)
     if direct_children_count == 1:
-        cur = conn.execute(
-            """
+        sql = """
             WITH RECURSIVE folder_tree AS (
                 SELECT id FROM folders WHERE parent_id = ?
                 UNION ALL
                 SELECT f.id FROM folders f
                 INNER JOIN folder_tree ft ON f.parent_id = ft.id
             )
-            SELECT c.uuid FROM comics c
+            SELECT c.uuid
+            FROM comics c
+            LEFT JOIN metadata m ON m.comic_id = c.id
             WHERE c.folder_id IN (SELECT id FROM folder_tree)
+        """
+        sql += f" AND {explicit_filter(show_explicit)}"
+        sql += """
             ORDER BY c.last_scanned_at DESC
             LIMIT 1
-            """,
-            (folder_id,),
-        )
+        """
+        cur = conn.execute(sql, (folder_id,))
         row = cur.fetchone()
         return [row["uuid"]] if row else []
 
-    # Container with 2+ direct children: diversify (one per child, then fill)
-    cur = conn.execute(
-        """
+    sql = """
         WITH RECURSIVE folder_tree AS (
             SELECT id, id as root_child FROM folders WHERE parent_id = ?
             UNION ALL
             SELECT f.id, ft.root_child FROM folders f
             INNER JOIN folder_tree ft ON f.parent_id = ft.id
         )
-        SELECT c.uuid, ft.root_child FROM comics c
+        SELECT c.uuid, ft.root_child
+        FROM comics c
         INNER JOIN folder_tree ft ON c.folder_id = ft.id
-        ORDER BY RANDOM()
-        """,
-        (folder_id,),
-    )
+        LEFT JOIN metadata m ON m.comic_id = c.id
+        WHERE
+    """
+    sql += explicit_filter(show_explicit)
+    sql += " ORDER BY RANDOM()"
+
+    cur = conn.execute(sql, (folder_id,))
     rows = cur.fetchall()
 
     seen_children = set()

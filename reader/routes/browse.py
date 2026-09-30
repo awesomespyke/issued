@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 
 from server.database import db_connection
 from .. import repo
@@ -12,6 +12,22 @@ from .. import series
 from ._common import templates, _library_title, _reader_auth_enabled
 
 router = APIRouter(tags=["reader"])
+
+
+def _show_explicit(request: Request) -> bool:
+    """Whether explicit titles should appear in browse/discovery views."""
+    return request.cookies.get("issued-show-explicit", "true").lower() != "false"
+
+@router.post("/api/preferences/show-explicit", include_in_schema=False)
+def set_show_explicit(show: bool) -> Response:
+    response = Response(status_code=204)
+    response.set_cookie(
+        key="issued-show-explicit",
+        value="true" if show else "false",
+        path="/",
+        samesite="lax",
+    )
+    return response
 
 
 def _comic_reader_path(
@@ -71,13 +87,15 @@ def browse_root(request: Request):
     """Browse root: first level (single folder contents or folder list + last added)."""
     with db_connection() as conn:
         top_folders = repo.get_top_folders(conn)
-        popular_tags = repo.get_popular_tags(conn, 12)
+        popular_tags = repo.get_popular_tags(conn, 12, show_explicit=_show_explicit(request))
 
         if len(top_folders) == 1:
             folder_id = top_folders[0]["id"]
-            subfolders = repo.get_subfolders_with_item_count(conn, folder_id)
-            comics = repo.get_comics_in_folder(conn, folder_id)
-            continue_reading = repo.get_continue_reading_comics(conn, 12)
+            subfolders = repo.get_subfolders_with_item_count(conn, folder_id, show_explicit=_show_explicit(request))
+            comics = repo.get_comics_in_folder(
+                conn, folder_id, show_explicit=_show_explicit(request)
+            )
+            continue_reading = repo.get_continue_reading_comics(conn, 12, show_explicit=_show_explicit(request))
             is_leaf = repo.folder_is_leaf(conn, folder_id)
             series_continue = (
                 _series_continue_context(request, conn, folder_id)
@@ -105,8 +123,8 @@ def browse_root(request: Request):
                 },
             )
 
-        repo.add_folder_item_counts(conn, top_folders)
-        continue_reading = repo.get_continue_reading_comics(conn, 12)
+        repo.add_folder_item_counts(conn, top_folders, show_explicit=_show_explicit(request))
+        continue_reading = repo.get_continue_reading_comics(conn, 12, show_explicit=_show_explicit(request))
         return templates.TemplateResponse(
             request,
             "browser.html",
@@ -134,7 +152,7 @@ def browse_root(request: Request):
 def browse_search(request: Request, q: str = ""):
     """Search comics by filename or metadata."""
     with db_connection() as conn:
-        grouped_comics = repo.search_comics_grouped(conn, q)
+        grouped_comics = repo.search_comics_grouped(conn, q, show_explicit=_show_explicit(request))
 
     return templates.TemplateResponse(
         request,
@@ -164,7 +182,7 @@ def browse_search(request: Request, q: str = ""):
 def browse_last_added(request: Request, limit: int = 50):
     """Browse last added comics."""
     with db_connection() as conn:
-        comics = repo.get_last_added_comics(conn, min(limit, 200))
+        comics = repo.get_last_added_comics(conn, min(limit, 200), show_explicit=_show_explicit(request))
 
     return templates.TemplateResponse(
         request,
@@ -197,8 +215,8 @@ def browse_folder(request: Request, folder_id: int):
         if not folder:
             raise HTTPException(status_code=404, detail="Folder not found")
 
-        subfolders = repo.get_subfolders_with_item_count(conn, folder_id)
-        comics = repo.get_comics_in_folder(conn, folder_id)
+        subfolders = repo.get_subfolders_with_item_count(conn, folder_id, show_explicit=_show_explicit(request))
+        comics = repo.get_comics_in_folder(conn, folder_id, show_explicit=_show_explicit(request))
         breadcrumbs = repo.get_breadcrumbs_for_folder(conn, folder_id)
         is_leaf = repo.folder_is_leaf(conn, folder_id)
         series_continue = (
@@ -296,7 +314,7 @@ def reader_view(
 def browse_series(request: Request):
     """Series index derived from embedded ComicInfo metadata."""
     with db_connection() as conn:
-        series_rows = repo.get_all_series_with_counts(conn)
+        series_rows = repo.get_all_series_with_counts(conn, show_explicit=_show_explicit(request))
     return templates.TemplateResponse(
         request,
         "series.html",
@@ -312,7 +330,7 @@ def browse_series(request: Request):
 def browse_metadata_series(request: Request, series_name: str):
     """Browse comics belonging to an embedded metadata series."""
     with db_connection() as conn:
-        comics = repo.get_comics_for_metadata_series(conn, series_name)
+        comics = repo.get_comics_for_metadata_series(conn, series_name, show_explicit=_show_explicit(request))
 
     if not comics:
         raise HTTPException(status_code=404, detail="Series not found")
@@ -343,7 +361,7 @@ def browse_metadata_series(request: Request, series_name: str):
 def browse_tags(request: Request):
     """Tag index: all tags with comic counts."""
     with db_connection() as conn:
-        tag_rows = repo.get_all_tags_with_counts(conn)
+        tag_rows = repo.get_all_tags_with_counts(conn, show_explicit=_show_explicit(request))
     return templates.TemplateResponse(
         request,
         "tags.html",
@@ -359,7 +377,7 @@ def browse_tags(request: Request):
 def browse_tag(request: Request, tag_name: str):
     """Browse all comics with a given tag."""
     with db_connection() as conn:
-        grouped_comics = repo.get_comics_for_tag(conn, tag_name)
+        grouped_comics = repo.get_comics_for_tag(conn, tag_name, show_explicit=_show_explicit(request))
     return templates.TemplateResponse(
         request,
         "browser.html",

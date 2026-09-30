@@ -51,7 +51,7 @@ class Comic(ComicBase, table=True):
 
 class ComicMetadataBase(SQLModel):
     title: Optional[str] = None
-    series: Optional[str] = None  # Set from folder name when leaf, never from ComicInfo <Series>
+    series: Optional[str] = None  # Embedded ComicInfo Series; leaf folder name may be used as fallback
     issue_number: Optional[int] = None
     publisher: Optional[str] = None
     year: Optional[int] = None
@@ -64,6 +64,7 @@ class ComicMetadataBase(SQLModel):
     web: Optional[str] = None
     language_iso: Optional[str] = None
     genre: Optional[str] = None
+    age_rating: Optional[str] = None
     score: Optional[int] = None
     # Reading progress (continue reading)
     is_completed: bool = False
@@ -92,3 +93,4 @@ class ComicTag(SQLModel, table=True):
 
     comic_id: int = Field(foreign_key="comics.id", primary_key=True)
     tag_id: int = Field(foreign_key="tags.id", primary_key=True)
+

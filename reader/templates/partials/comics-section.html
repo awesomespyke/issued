@@ -1,4 +1,4 @@
-{% macro comic_table(comics_list, request) %}
+﻿{% macro comic_table(comics_list, request) %}
 <div class="comics-table-wrap overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-md">
   <table class="w-full min-w-[640px] border-collapse text-sm">
     <thead>
@@ -33,10 +33,10 @@
           </a>
         </td>
         <td class="py-2 pr-4 text-gray-700">
-          {% if c.get('publisher') %}{{ c.publisher }}{% else %}<span class="text-gray-300">—</span>{% endif %}
+          {% if c.get('publisher') %}{{ c.publisher }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
         </td>
         <td class="py-2 pr-3 text-center text-gray-700">
-          {% if c.get('year') %}{{ c.year }}{% else %}<span class="text-gray-300">—</span>{% endif %}
+          {% if c.get('year') %}{{ c.year }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
         </td>
         <td class="py-2 pr-4">
           {% if c.get('writer') %}
@@ -44,17 +44,17 @@
             <i data-lucide="pen-line" class="h-3 w-3 shrink-0 text-gray-400"></i>{{ c.writer }}
           </span>
           {% endif %}
-          {% if c.get('penciller') %}
+          {% if c.get('penciller') and c.get('penciller') != c.get('writer') %}
           <span class="flex items-center gap-1 text-gray-500">
             <i data-lucide="pencil" class="h-3 w-3 shrink-0 text-gray-400"></i>{{ c.penciller }}
           </span>
           {% endif %}
           {% if not c.get('writer') and not c.get('penciller') %}
-          <span class="text-gray-300">—</span>
+          <span class="text-gray-300">&mdash;</span>
           {% endif %}
         </td>
         <td class="py-2 pr-3 text-center text-gray-700">
-          {% if c.get('page_count') %}{{ c.page_count }}{% else %}<span class="text-gray-300">—</span>{% endif %}
+          {% if c.get('page_count') %}{{ c.page_count }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
         </td>
         <td class="py-2 pr-3 text-center">
           {% if c.get('score') is not none and c.score != '' %}
@@ -62,7 +62,7 @@
             <i data-lucide="star" class="h-3 w-3 fill-amber-400 text-amber-400"></i>{{ c.score }}
           </span>
           {% else %}
-          <span class="text-gray-300">—</span>
+          <span class="text-gray-300">&mdash;</span>
           {% endif %}
         </td>
         <td class="py-2 pr-3 text-center">
@@ -75,7 +75,7 @@
           </button>
         </td>
         <td class="py-2 pr-3 text-center text-xs text-gray-500">
-          {% if c.get('last_read_at') %}{{ c.last_read_at[:10] }}{% else %}<span class="text-gray-300">—</span>{% endif
+          {% if c.get('last_read_at') %}{{ c.last_read_at[:10] }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif
           %}
         </td>
         <td class="py-2 pr-3 text-center">
@@ -210,3 +210,4 @@
   </div>
   {% endif %}
 </section>
+

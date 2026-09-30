@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .comics import explicit_filter
+
 
 _COMICS_WITH_META = """
     SELECT
@@ -23,35 +25,41 @@ _COMICS_WITH_META = """
 """
 
 
-def get_all_series_with_counts(conn) -> list[dict]:
+def get_all_series_with_counts(conn, show_explicit: bool = True) -> list[dict]:
     """All embedded metadata series with comic counts."""
-    cur = conn.execute(
-        """
+    sql = """
         SELECT m.series AS name, COUNT(c.id) AS comic_count
         FROM metadata m
         INNER JOIN comics c ON c.id = m.comic_id
         WHERE m.series IS NOT NULL
           AND TRIM(m.series) != ''
+    """
+    sql += f" AND {explicit_filter(show_explicit)}"
+    sql += """
         GROUP BY m.series COLLATE NOCASE
         ORDER BY m.series COLLATE NOCASE
-        """
-    )
+    """
+    cur = conn.execute(sql)
     return [dict(row) for row in cur.fetchall()]
 
 
-def get_comics_for_metadata_series(conn, series_name: str) -> list[dict]:
+def get_comics_for_metadata_series(
+    conn,
+    series_name: str,
+    show_explicit: bool = True,
+) -> list[dict]:
     """All comics belonging to an embedded metadata series, in issue order."""
-    cur = conn.execute(
-        _COMICS_WITH_META
-        + """
+    sql = _COMICS_WITH_META + """
         WHERE m.series = ? COLLATE NOCASE
+    """
+    sql += f" AND {explicit_filter(show_explicit)}"
+    sql += """
         ORDER BY
             CASE WHEN m.issue_number IS NULL THEN 1 ELSE 0 END,
             m.issue_number,
             c.filename COLLATE NOCASE
-        """,
-        (series_name,),
-    )
+    """
+    cur = conn.execute(sql, (series_name,))
     return [dict(row) for row in cur.fetchall()]
 
 def get_metadata_series_for_comic(conn, comic_uuid: str) -> tuple[str, list[dict]] | None:
@@ -64,6 +72,7 @@ def get_metadata_series_for_comic(conn, comic_uuid: str) -> tuple[str, list[dict
         WHERE c.uuid = ?
           AND m.series IS NOT NULL
           AND TRIM(m.series) != ''
+          AND "" + explicit_filter(show_explicit) + ""
         """,
         (comic_uuid,),
     )

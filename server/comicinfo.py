@@ -2,7 +2,7 @@
 
 Reads ComicInfo.xml from inside CBZ/CBR/PDF comic files and extracts metadata.
 For PDFs, ComicInfo.xml is generated from PDF metadata properties.
-The <Series> tag is never used; series is set from the folder name when the folder is a leaf.
+Embedded <Series> metadata is authoritative; the scanner may use the leaf folder name as a fallback.
 """
 
 from __future__ import annotations
@@ -30,6 +30,7 @@ TAG_MAP = {
     "web": "web",
     "languageiso": "language_iso",
     "genre": "genre",
+    "agerating": "age_rating",
     "publisher": "publisher",
     "tags": "tags",
 }
@@ -52,6 +53,7 @@ class ComicInfoParsed(BaseModel):
     web: Optional[str] = None
     language_iso: Optional[str] = None
     genre: Optional[str] = None
+    age_rating: Optional[str] = None
     tags: Optional[str] = None
 
 class ComicMetadataUpdate(BaseModel):
@@ -73,6 +75,7 @@ class ComicMetadataUpdate(BaseModel):
     web: Optional[str] = None
     language_iso: Optional[str] = None
     genre: Optional[str] = None
+    age_rating: Optional[str] = None
 
 def _text(elem: Optional[ET.Element]) -> Optional[str]:
     if elem is None or elem.text is None:
@@ -141,3 +144,4 @@ def read_comicinfo_from_archive(archive_path: Path) -> Optional[ComicInfoParsed]
     if not raw.strip():
         return None
     return parse_comicinfo_xml(raw)
+

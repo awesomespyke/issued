@@ -17,6 +17,7 @@
         const savedLayoutWidth = localStorage.getItem('issued-layout-width');
         const savedThumbnailSize = localStorage.getItem('issued-thumbnail-size');
         const savedBorderless = localStorage.getItem('issued-borderless-collage');
+        const showExplicit = {{ 'true' if request.cookies.get('issued-show-explicit', 'true')|lower != 'false' else 'false' }};
 
         root.dataset.theme = savedTheme || (prefersDark ? 'dark' : 'light');
         root.dataset.layoutWidth = ['fixed', 'full'].includes(savedLayoutWidth) ? savedLayoutWidth : 'fixed';
@@ -26,11 +27,13 @@
           ? savedThumbnailSize
           : 'medium';
         root.dataset.borderless = savedBorderless === 'true' ? 'true' : 'false';
+        root.dataset.showExplicit = String(showExplicit);
       } catch (_) {
         root.dataset.theme = 'light';
         root.dataset.layoutWidth = 'fixed';
         root.dataset.thumbnailSize = 'medium';
         root.dataset.borderless = 'false';
+        root.dataset.showExplicit = 'true';
       }
     })();
   </script>
@@ -49,7 +52,7 @@
     <div class="layout-container mx-auto max-w-6xl px-3 sm:px-4">
       <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
         <div class="flex shrink-0 justify-center lg:justify-start lg:w-[min(24rem,38%)]">
-          <div class="spykespace-brand"><a href="{{ url_path(request, 'browse_root') }}" class="spykespace-wordmark no-underline touch-manipulation hover:opacity-80 transition-all" title="Spykespace Library">SPYKESPACE LIBRARY</a><span class="spykespace-credit"><a href="https://spyke.space/" class="spykespace-home-link">&larr; spyke.space</a> &middot; an Issued hack</span></div>
+          <div class="spykespace-brand"><a href="{{ url_path(request, 'browse_root') }}" class="spykespace-wordmark no-underline touch-manipulation hover:opacity-80 transition-all" title="Spykespace Library">SPYKESPACE</a><span class="spykespace-credit"><a href="https://spyke.space/" class="spykespace-home-link">&larr; spyke.space</a> &middot; an Issued hack</span></div>
         </div>
         <div class="min-w-0 flex-1 flex justify-center px-0 lg:px-2">
           <form action="{{ url_path(request, 'browse_search') }}" method="get" role="search" class="w-full max-w-md">
@@ -109,12 +112,13 @@
     {% block content %}{% endblock %}
   </main>
   {% block scripts %}{% endblock %}
-  <script src="{{ url_path(request, 'reader_static', path='/js/layout.js') }}"></script>
+  <script src="{{ url_path(request, 'reader_static', path='/js/layout.js') }}?v=2"></script>
   <script src="{{ url_path(request, 'reader_static', path='/js/theme.js') }}"></script>
   <script>lucide.createIcons();</script>
 </body>
 
 </html>
+
 
 
 
