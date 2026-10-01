@@ -46,6 +46,7 @@ from .series import (
     get_all_series_with_counts,
     get_comics_for_metadata_series,
     get_metadata_series_for_comic,
+    get_library_entries,
 )
 
 __all__ = [
@@ -62,5 +63,5 @@ __all__ = [
     "get_tags_for_comic", "get_all_tags_with_counts",
     "get_comics_for_tag", "get_popular_tags",
    "get_all_series_with_counts", "get_comics_for_metadata_series",
-"get_metadata_series_for_comic",
+"get_metadata_series_for_comic", "get_library_entries",
 ]

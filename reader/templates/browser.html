@@ -121,6 +121,10 @@
 
   {% include 'partials/last-added.html' %}
 
+  {% if library_entries is defined %}
+  {% include 'partials/library-grid.html' %}
+  {% endif %}
+
   {% include 'partials/folder-grid.html' %}
 
   {% if comics or grouped_comics %}

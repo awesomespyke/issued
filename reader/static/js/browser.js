@@ -4,7 +4,9 @@
 (() => {
   // --- View toggle (grid / table) ---
 
-  const comicsSection = document.getElementById('comics-section');
+  const comicsSection =
+    document.getElementById('comics-section') ||
+    document.getElementById('library-section');
   const gridBtn = document.getElementById('view-grid-btn');
   const tableBtn = document.getElementById('view-table-btn');
 

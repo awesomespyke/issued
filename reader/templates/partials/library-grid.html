@@ -1,0 +1,208 @@
+{% if library_entries %}
+<section class="mb-8" id="library-section">
+  <div class="mb-4 flex items-center justify-between">
+    <h2 class="text-lg font-bold text-gray-800">
+      Library
+      <span class="ml-2 text-sm font-normal text-gray-500">({{ library_entries|length }})</span>
+    </h2>
+
+    <div class="flex items-center gap-1 rounded-xl border border-violet-100 bg-white p-1 shadow-sm">
+      <button type="button" id="view-grid-btn" title="Grid view"
+        class="view-toggle-btn flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg transition">
+        <i data-lucide="layout-grid" class="h-4 w-4"></i>
+      </button>
+      <button type="button" id="view-table-btn" title="List view"
+        class="view-toggle-btn flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg transition">
+        <i data-lucide="list" class="h-4 w-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Grid view -->
+  <ul class="comics-grid-list cover-grid grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+    {% for entry in library_entries %}
+    <li class="group relative">
+      {% if entry.entry_type == 'series' %}
+      <div class="relative h-full">
+        <div class="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-2xl bg-violet-100"></div>
+        <div class="absolute inset-0 translate-x-0.5 translate-y-0.5 rounded-2xl bg-violet-50"></div>
+
+        <a href="{{ url_path(request, 'browse_metadata_series', series_name=entry.series) }}"
+          class="relative block h-full overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-2xl">
+          <div class="relative aspect-[2/3] w-full overflow-hidden">
+            <img src="{{ url_path(request, 'get_thumbnail', comic_uuid=entry.uuid) }}"
+              alt=""
+              class="h-full w-full object-cover"
+              loading="lazy">
+
+            <span class="absolute bottom-2 right-2 rounded-full bg-violet-600 px-2.5 py-1 text-xs font-bold text-white shadow">
+              {{ entry.comic_count }} issues
+            </span>
+          </div>
+
+          <div class="p-3">
+            <span class="line-clamp-2 block text-center text-sm font-semibold text-gray-800">
+              {{ entry.title }}
+            </span>
+          </div>
+        </a>
+      </div>
+
+      {% else %}
+      <div class="comic-card h-full overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-2xl">
+        <div class="comic-cover relative aspect-[2/3] w-full">
+          <button type="button"
+            class="comic-completed-toggle comic-completed-toggle-grid absolute left-2 top-2 z-20 flex h-7 w-7 items-center justify-center rounded-full shadow-md transition {% if entry.get('is_completed') %}bg-violet-600 text-white opacity-100{% else %}bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-violet-100 hover:text-violet-700{% endif %}"
+            data-comic-uuid="{{ entry.uuid }}"
+            data-is-completed="{{ 'true' if entry.get('is_completed') else 'false' }}"
+            title="{% if entry.get('is_completed') %}Mark as not completed{% else %}Mark as completed{% endif %}">
+            <i data-lucide="check" class="h-4 w-4"></i>
+          </button>
+
+          <a href="{{ url_path(request, 'reader_view', comic_uuid=entry.uuid) }}" class="block h-full w-full">
+            <img src="{{ url_path(request, 'get_thumbnail', comic_uuid=entry.uuid) }}"
+              alt=""
+              class="h-full w-full object-cover"
+              loading="lazy">
+          </a>
+        </div>
+
+        <a href="{{ url_path(request, 'reader_view', comic_uuid=entry.uuid) }}"
+          class="comic-card-details block bg-white p-3">
+          <span class="line-clamp-2 block text-center text-sm font-medium text-gray-800">
+            {{ entry.filename }}
+          </span>
+          {% if entry.get('page_count') and entry.page_count > 0 %}
+          <span class="mt-1 block text-center text-xs text-gray-500">
+            {{ entry.page_count }} pages
+          </span>
+          {% endif %}
+        </a>
+      </div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+
+  <!-- List view -->
+  <div class="comics-table-list hidden overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-md">
+    <table class="w-full min-w-[640px] border-collapse text-sm">
+      <thead>
+        <tr class="border-b border-gray-100 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <th class="w-14 py-2 pl-3 pr-2"></th>
+          <th class="py-2 pr-4">Title</th>
+          <th class="py-2 pr-4">Publisher</th>
+          <th class="py-2 pr-3 text-center">Year</th>
+          <th class="py-2 pr-4">Writer / Penciller</th>
+          <th class="py-2 pr-3 text-center">Pages</th>
+          <th class="py-2 pr-3 text-center">Score</th>
+          <th class="py-2 pr-3 text-center">Done</th>
+          <th class="py-2 pr-3 text-center">Last read</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-50">
+        {% for entry in library_entries %}
+        {% if entry.entry_type == 'series' %}
+        <tr class="group transition-colors hover:bg-violet-50">
+          <td class="w-14 py-1 pl-3 pr-2">
+            <a href="{{ url_path(request, 'browse_metadata_series', series_name=entry.series) }}"
+              class="block overflow-hidden rounded-lg" style="width:44px">
+              <img src="{{ url_path(request, 'get_thumbnail', comic_uuid=entry.uuid) }}"
+                alt="" class="aspect-[2/3] w-full object-cover" loading="lazy">
+            </a>
+          </td>
+
+          <td class="py-2 pr-4">
+            <a href="{{ url_path(request, 'browse_metadata_series', series_name=entry.series) }}" class="block">
+              <p class="font-semibold text-gray-900 leading-snug">{{ entry.title }}</p>
+              <p class="mt-0.5 text-xs font-medium text-violet-600">
+                Series · {{ entry.comic_count }} issues
+              </p>
+            </a>
+          </td>
+
+          <td class="py-2 pr-4 text-gray-300">&mdash;</td>
+          <td class="py-2 pr-3 text-center text-gray-300">&mdash;</td>
+          <td class="py-2 pr-4 text-gray-300">&mdash;</td>
+          <td class="py-2 pr-3 text-center text-gray-300">&mdash;</td>
+          <td class="py-2 pr-3 text-center text-gray-300">&mdash;</td>
+          <td class="py-2 pr-3 text-center text-gray-300">&mdash;</td>
+          <td class="py-2 pr-3 text-center text-gray-300">&mdash;</td>
+        </tr>
+
+        {% else %}
+        <tr class="comic-table-row group transition-colors hover:bg-violet-50">
+          <td class="w-14 py-1 pl-3 pr-2">
+            <a href="{{ url_path(request, 'reader_view', comic_uuid=entry.uuid) }}"
+              class="block overflow-hidden rounded-lg" style="width:44px">
+              <img src="{{ url_path(request, 'get_thumbnail', comic_uuid=entry.uuid) }}"
+                alt="" class="aspect-[2/3] w-full object-cover" loading="lazy">
+            </a>
+          </td>
+
+          <td class="py-2 pr-4">
+            <a href="{{ url_path(request, 'reader_view', comic_uuid=entry.uuid) }}" class="block">
+              <p class="font-semibold text-gray-900 leading-snug line-clamp-2">{{ entry.filename }}</p>
+            </a>
+          </td>
+
+          <td class="py-2 pr-4 text-gray-700">
+            {% if entry.get('publisher') %}{{ entry.publisher }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
+          </td>
+
+          <td class="py-2 pr-3 text-center text-gray-700">
+            {% if entry.get('year') %}{{ entry.year }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
+          </td>
+
+          <td class="py-2 pr-4">
+            {% if entry.get('writer') %}
+            <span class="flex items-center gap-1 text-gray-700">
+              <i data-lucide="pen-line" class="h-3 w-3 shrink-0 text-gray-400"></i>{{ entry.writer }}
+            </span>
+            {% endif %}
+            {% if entry.get('penciller') and entry.get('penciller') != entry.get('writer') %}
+            <span class="flex items-center gap-1 text-gray-500">
+              <i data-lucide="pencil" class="h-3 w-3 shrink-0 text-gray-400"></i>{{ entry.penciller }}
+            </span>
+            {% endif %}
+            {% if not entry.get('writer') and not entry.get('penciller') %}
+            <span class="text-gray-300">&mdash;</span>
+            {% endif %}
+          </td>
+
+          <td class="py-2 pr-3 text-center text-gray-700">
+            {% if entry.get('page_count') %}{{ entry.page_count }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
+          </td>
+
+          <td class="py-2 pr-3 text-center">
+            {% if entry.get('score') is not none and entry.score != '' %}
+            <span class="inline-flex items-center gap-0.5 font-semibold text-amber-500">
+              <i data-lucide="star" class="h-3 w-3 fill-amber-400 text-amber-400"></i>{{ entry.score }}
+            </span>
+            {% else %}
+            <span class="text-gray-300">&mdash;</span>
+            {% endif %}
+          </td>
+
+          <td class="py-2 pr-3 text-center">
+            <button type="button"
+              class="comic-completed-toggle comic-completed-toggle-table mx-auto inline-flex h-7 w-7 items-center justify-center rounded-full transition {% if entry.get('is_completed') %}bg-violet-600 text-white{% else %}bg-gray-100 text-gray-400 hover:bg-violet-100 hover:text-violet-700{% endif %}"
+              data-comic-uuid="{{ entry.uuid }}"
+              data-is-completed="{{ 'true' if entry.get('is_completed') else 'false' }}"
+              title="{% if entry.get('is_completed') %}Mark as not completed{% else %}Mark as completed{% endif %}">
+              <i data-lucide="check" class="h-4 w-4"></i>
+            </button>
+          </td>
+
+          <td class="py-2 pr-3 text-center text-xs text-gray-500">
+            {% if entry.get('last_read_at') %}{{ entry.last_read_at[:10] }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}

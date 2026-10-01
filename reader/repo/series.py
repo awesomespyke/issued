@@ -106,3 +106,93 @@ def get_metadata_series_for_comic(conn, comic_uuid: str) -> tuple[str, list[dict
     )
 
     return series_name, [dict(row) for row in cur.fetchall()]
+
+def get_library_entries(conn, show_explicit: bool = True) -> list[dict]:
+    """Return the library as reading choices: multi-comic series plus individual comics."""
+    visibility = explicit_filter(show_explicit)
+
+    cur = conn.execute(
+        f"""
+        WITH visible_comics AS (
+            SELECT
+                c.id,
+                c.uuid,
+                c.filename,
+                c.page_count,
+                c.thumbnail_generated,
+                (m.is_completed = 1) AS is_completed,
+                m.title,
+                NULLIF(TRIM(m.series), '') AS series,
+                m.issue_number,
+                m.publisher,
+                m.year,
+                m.artist,
+                m.writer,
+                m.penciller,
+                m.score,
+                m.last_read_at,
+                m.age_rating
+            FROM comics c
+            LEFT JOIN metadata m ON m.comic_id = c.id
+            WHERE {visibility}
+        ),
+        series_counts AS (
+            SELECT series, COUNT(*) AS comic_count
+            FROM visible_comics
+            WHERE series IS NOT NULL
+            GROUP BY series COLLATE NOCASE
+        )
+        SELECT
+            'series' AS entry_type,
+            MIN(v.uuid) AS uuid,
+            NULL AS filename,
+            NULL AS page_count,
+            NULL AS is_completed,
+            s.series AS title,
+            s.series AS series,
+            NULL AS issue_number,
+            NULL AS publisher,
+            NULL AS year,
+            NULL AS artist,
+            NULL AS writer,
+            NULL AS penciller,
+            NULL AS score,
+            NULL AS last_read_at,
+            NULL AS age_rating,
+            s.comic_count AS comic_count
+        FROM series_counts s
+        JOIN visible_comics v ON v.series = s.series COLLATE NOCASE
+        WHERE s.comic_count >= 2
+        GROUP BY s.series COLLATE NOCASE
+
+        UNION ALL
+
+        SELECT
+            'comic' AS entry_type,
+            v.uuid,
+            v.filename,
+            v.page_count,
+            v.is_completed,
+            v.title,
+            v.series,
+            v.issue_number,
+            v.publisher,
+            v.year,
+            v.artist,
+            v.writer,
+            v.penciller,
+            v.score,
+            v.last_read_at,
+            v.age_rating,
+            1 AS comic_count
+        FROM visible_comics v
+        LEFT JOIN series_counts s
+            ON v.series = s.series COLLATE NOCASE
+        WHERE v.series IS NULL
+           OR COALESCE(s.comic_count, 0) < 2
+
+        ORDER BY title COLLATE NOCASE
+        """
+    )
+
+    return [dict(row) for row in cur.fetchall()]

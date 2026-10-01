@@ -84,66 +84,46 @@ def _series_navigation_context(request: Request, conn, comic_uuid: str) -> dict 
 
 @router.get("/")
 def browse_root(request: Request):
-    """Browse root: first level (single folder contents or folder list + last added)."""
+    """Browse the library as reading choices: series plus individual comics."""
+    show_explicit = _show_explicit(request)
+
     with db_connection() as conn:
-        top_folders = repo.get_top_folders(conn)
-        popular_tags = repo.get_popular_tags(conn, 12, show_explicit=_show_explicit(request))
-
-        if len(top_folders) == 1:
-            folder_id = top_folders[0]["id"]
-            subfolders = repo.get_subfolders_with_item_count(conn, folder_id, show_explicit=_show_explicit(request))
-            comics = repo.get_comics_in_folder(
-                conn, folder_id, show_explicit=_show_explicit(request)
-            )
-            continue_reading = repo.get_continue_reading_comics(conn, 12, show_explicit=_show_explicit(request))
-            is_leaf = repo.folder_is_leaf(conn, folder_id)
-            series_continue = (
-                _series_continue_context(request, conn, folder_id)
-                if is_leaf
-                else None
-            )
-            return templates.TemplateResponse(
-                request,
-                "browser.html",
-                {
-                    "title": _library_title(),
-                    "breadcrumbs": [],
-                    "folders": subfolders,
-                    "comics": comics,
-                    "grouped_comics": [],
-                    "is_search": False,
-                    "show_last_added": False,
-                    "last_added_comics": [],
-                    "continue_reading_comics": continue_reading,
-                    "homepage_tags": popular_tags,
-                    "reader_auth_enabled": _reader_auth_enabled(),
-                    "folder_id": folder_id,
-                    "series_continue": series_continue,
-                    "is_leaf": is_leaf,
-                },
-            )
-
-        repo.add_folder_item_counts(conn, top_folders, show_explicit=_show_explicit(request))
-        continue_reading = repo.get_continue_reading_comics(conn, 12, show_explicit=_show_explicit(request))
-        return templates.TemplateResponse(
-            request,
-            "browser.html",
-            {
-                "title": _library_title(),
-                "breadcrumbs": [],
-                "folders": top_folders,
-                "comics": [],
-                "grouped_comics": [],
-                "is_search": False,
-                "show_last_added": False,
-                "last_added_comics": [],
-                "continue_reading_comics": continue_reading,
-                "homepage_tags": popular_tags,
-                "reader_auth_enabled": _reader_auth_enabled(),
-                "folder_id": None,
-                "is_leaf": False,
-            },
+        library_entries = repo.get_library_entries(
+            conn,
+            show_explicit=show_explicit,
         )
+        popular_tags = repo.get_popular_tags(
+            conn,
+            12,
+            show_explicit=show_explicit,
+        )
+        continue_reading = repo.get_continue_reading_comics(
+            conn,
+            12,
+            show_explicit=show_explicit,
+        )
+
+    return templates.TemplateResponse(
+        request,
+        "browser.html",
+        {
+            "title": _library_title(),
+            "breadcrumbs": [],
+            "folders": [],
+            "comics": [],
+            "grouped_comics": [],
+            "library_entries": library_entries,
+            "is_search": False,
+            "show_last_added": False,
+            "last_added_comics": [],
+            "continue_reading_comics": continue_reading,
+            "homepage_tags": popular_tags,
+            "reader_auth_enabled": _reader_auth_enabled(),
+            "folder_id": None,
+            "series_continue": None,
+            "is_leaf": False,
+        },
+    )
 
 # --- Browse: search ---
 
@@ -326,7 +306,7 @@ def browse_series(request: Request):
     )
 
 
-@router.get("/series/{series_name}")
+@router.get("/series/{series_name:path}")
 def browse_metadata_series(request: Request, series_name: str):
     """Browse comics belonging to an embedded metadata series."""
     with db_connection() as conn:
