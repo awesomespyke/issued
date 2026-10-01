@@ -70,7 +70,7 @@
         <a href="{{ url_path(request, 'reader_view', comic_uuid=entry.uuid) }}"
           class="comic-card-details block bg-white p-3">
           <span class="line-clamp-2 block text-center text-sm font-medium text-gray-800">
-            {{ entry.filename }}
+            {% if entry.get('title') %}{{ entry.title }}{% if entry.get('issue_number') is not none %} #{{ entry.issue_number }}{% endif %}{% else %}{{ entry.filename }}{% endif %}
           </span>
           {% if entry.get('page_count') and entry.page_count > 0 %}
           <span class="mt-1 block text-center text-xs text-gray-500">
@@ -143,7 +143,7 @@
 
           <td class="py-2 pr-4">
             <a href="{{ url_path(request, 'reader_view', comic_uuid=entry.uuid) }}" class="block">
-              <p class="font-semibold text-gray-900 leading-snug line-clamp-2">{{ entry.filename }}</p>
+              <p class="font-semibold text-gray-900 leading-snug line-clamp-2">{% if entry.get('title') %}{{ entry.title }}{% if entry.get('issue_number') is not none %} #{{ entry.issue_number }}{% endif %}{% else %}{{ entry.filename }}{% endif %}</p>
             </a>
           </td>
 
@@ -158,12 +158,12 @@
           <td class="py-2 pr-4">
             {% if entry.get('writer') %}
             <span class="flex items-center gap-1 text-gray-700">
-              <i data-lucide="pen-line" class="h-3 w-3 shrink-0 text-gray-400"></i>{{ entry.writer }}
+              <i data-lucide="pen-line" class="h-3 w-3 shrink-0 text-gray-400"></i><a href="{{ url_path(request, 'browse_creator', creator_name=entry.writer) }}" class="hover:text-violet-700 hover:underline">{{ entry.writer }}</a>
             </span>
             {% endif %}
             {% if entry.get('penciller') and entry.get('penciller') != entry.get('writer') %}
             <span class="flex items-center gap-1 text-gray-500">
-              <i data-lucide="pencil" class="h-3 w-3 shrink-0 text-gray-400"></i>{{ entry.penciller }}
+              <i data-lucide="pencil" class="h-3 w-3 shrink-0 text-gray-400"></i><a href="{{ url_path(request, 'browse_creator', creator_name=entry.penciller) }}" class="hover:text-violet-700 hover:underline">{{ entry.penciller }}</a>
             </span>
             {% endif %}
             {% if not entry.get('writer') and not entry.get('penciller') %}

@@ -29,7 +29,7 @@
         </td>
         <td class="py-2 pr-4">
           <a href="{{ url_path(request, 'reader_view', comic_uuid=c.uuid) }}" class="block">
-            <p class="font-semibold text-gray-900 leading-snug line-clamp-2">{{ c.filename }}</p>
+            <p class="font-semibold text-gray-900 leading-snug line-clamp-2">{% if c.get('title') %}{{ c.title }}{% if c.get('issue_number') is not none %} #{{ c.issue_number }}{% endif %}{% else %}{{ c.filename }}{% endif %}</p>
           </a>
         </td>
         <td class="py-2 pr-4 text-gray-700">
@@ -41,12 +41,12 @@
         <td class="py-2 pr-4">
           {% if c.get('writer') %}
           <span class="flex items-center gap-1 text-gray-700">
-            <i data-lucide="pen-line" class="h-3 w-3 shrink-0 text-gray-400"></i>{{ c.writer }}
+            <i data-lucide="pen-line" class="h-3 w-3 shrink-0 text-gray-400"></i><a href="{{ url_path(request, 'browse_creator', creator_name=c.writer) }}" class="hover:text-violet-700 hover:underline">{{ c.writer }}</a>
           </span>
           {% endif %}
           {% if c.get('penciller') and c.get('penciller') != c.get('writer') %}
           <span class="flex items-center gap-1 text-gray-500">
-            <i data-lucide="pencil" class="h-3 w-3 shrink-0 text-gray-400"></i>{{ c.penciller }}
+            <i data-lucide="pencil" class="h-3 w-3 shrink-0 text-gray-400"></i><a href="{{ url_path(request, 'browse_creator', creator_name=c.penciller) }}" class="hover:text-violet-700 hover:underline">{{ c.penciller }}</a>
           </span>
           {% endif %}
           {% if not c.get('writer') and not c.get('penciller') %}
@@ -153,7 +153,7 @@
           </div>
           <a href="{{ url_path(request, 'reader_view', comic_uuid=c.uuid) }}"
             class="comic-card-details block bg-white p-3">
-            <span class="line-clamp-2 block text-center text-sm font-medium text-gray-800">{{ c.filename }}</span>
+            <span class="line-clamp-2 block text-center text-sm font-medium text-gray-800">{% if c.get('title') %}{{ c.title }}{% if c.get('issue_number') is not none %} #{{ c.issue_number }}{% endif %}{% else %}{{ c.filename }}{% endif %}</span>
             {% if c.get('page_count') and c.page_count > 0 %}
             <span class="mt-1 block text-center text-xs text-gray-500">{{ c.page_count }} pages</span>
             {% endif %}
@@ -195,7 +195,7 @@
         </div>
         <a href="{{ url_path(request, 'reader_view', comic_uuid=c.uuid) }}"
           class="comic-card-details block bg-white p-3">
-          <span class="line-clamp-2 block text-center text-sm font-medium text-gray-800">{{ c.filename }}</span>
+          <span class="line-clamp-2 block text-center text-sm font-medium text-gray-800">{% if c.get('title') %}{{ c.title }}{% if c.get('issue_number') is not none %} #{{ c.issue_number }}{% endif %}{% else %}{{ c.filename }}{% endif %}</span>
           {% if c.get('page_count') and c.page_count > 0 %}
           <span class="mt-1 block text-center text-xs text-gray-500">{{ c.page_count }} pages</span>
           {% endif %}

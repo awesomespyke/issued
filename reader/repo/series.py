@@ -196,3 +196,42 @@ def get_library_entries(conn, show_explicit: bool = True) -> list[dict]:
     )
 
     return [dict(row) for row in cur.fetchall()]
+
+def get_library_entries_for_creator(
+    conn,
+    creator_name: str,
+    show_explicit: bool = True,
+) -> list[dict]:
+    """Reading choices containing an exact writer, penciller, or artist credit."""
+    creator_key = creator_name.strip().casefold()
+
+    def credited(value: str | None) -> bool:
+        if not value:
+            return False
+        return any(
+            name.strip().casefold() == creator_key
+            for name in value.split(",")
+        )
+
+    entries = get_library_entries(conn, show_explicit=show_explicit)
+    matched = []
+
+    for entry in entries:
+        if entry["entry_type"] == "comic":
+            if any(credited(entry.get(field)) for field in ("writer", "penciller", "artist")):
+                matched.append(entry)
+            continue
+
+        comics = get_comics_for_metadata_series(
+            conn,
+            entry["series"],
+            show_explicit=show_explicit,
+        )
+        if any(
+            credited(comic.get(field))
+            for comic in comics
+            for field in ("writer", "penciller", "artist")
+        ):
+            matched.append(entry)
+
+    return matched

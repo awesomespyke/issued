@@ -33,15 +33,20 @@ def set_show_explicit(show: bool) -> Response:
 def _comic_reader_path(
     request: Request,
     comic: dict,
-    folder_id: int,
+    folder_id: int | None,
     *,
     start_from_beginning: bool = False,
 ) -> str:
     path = request.url_for("reader_view", comic_uuid=comic["uuid"]).path
-    query = f"series={folder_id}"
+    query = []
+
+    if folder_id is not None:
+        query.append(f"series={folder_id}")
+
     if start_from_beginning or comic.get("is_completed"):
-        query += "&start=1"
-    return f"{path}?{query}"
+        query.append("start=1")
+
+    return f"{path}?{'&'.join(query)}" if query else path
 
 
 def _series_continue_context(request: Request, conn, folder_id: int) -> dict:
@@ -266,6 +271,7 @@ def reader_view(
         breadcrumbs = repo.get_breadcrumbs_for_folder(conn, folder_id) if folder_id else []
         metadata = repo.get_metadata(conn, comic_uuid)
         issue_title = (metadata or {}).get("title")
+        issue_number = (metadata or {}).get("issue_number")
         progress = repo.get_progress(conn, comic_uuid)
         series_navigation = _series_navigation_context(request, conn, comic_uuid)
 
@@ -278,6 +284,7 @@ def reader_view(
             "comic_uuid": comic_uuid,
             "comic_filename": comic["filename"],
             "issue_title": issue_title,
+            "issue_number": issue_number,
             "page_count": page_count,
             "initial_page": initial_page,
             "was_completed": bool((progress or {}).get("is_completed")),
@@ -328,6 +335,44 @@ def browse_metadata_series(request: Request, series_name: str):
             "show_last_added": False,
             "last_added_comics": [],
             "continue_reading_comics": [],
+            "reader_auth_enabled": _reader_auth_enabled(),
+            "folder_id": None,
+            "is_leaf": False,
+        },
+    )
+
+
+# --- Browse: creator ---
+
+
+@router.get("/creator/{creator_name:path}")
+def browse_creator(request: Request, creator_name: str):
+    """Browse reading choices credited to a creator."""
+    with db_connection() as conn:
+        library_entries = repo.get_library_entries_for_creator(
+            conn,
+            creator_name,
+            show_explicit=_show_explicit(request),
+        )
+
+    if not library_entries:
+        raise HTTPException(status_code=404, detail="Creator not found")
+
+    return templates.TemplateResponse(
+        request,
+        "browser.html",
+        {
+            "title": creator_name,
+            "breadcrumbs": [],
+            "folders": [],
+            "comics": [],
+            "grouped_comics": [],
+            "library_entries": library_entries,
+            "is_search": False,
+            "show_last_added": False,
+            "last_added_comics": [],
+            "continue_reading_comics": [],
+            "homepage_tags": [],
             "reader_auth_enabled": _reader_auth_enabled(),
             "folder_id": None,
             "is_leaf": False,

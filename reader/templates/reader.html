@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block body_class %}reader-page{% endblock %}
 {% block content %}
@@ -24,10 +24,7 @@
 
       <div class="reader-summary flex-1 min-w-0">
         <div class="reader-desktop-heading">
-          <h1 class="mb-0.5 truncate text-base font-bold text-gray-900 sm:mb-1 sm:text-lg">{{ comic_filename }}</h1>
-          {% if issue_title and issue_title != comic_filename %}
-          <p class="mb-0.5 truncate text-sm text-gray-500 sm:mb-1">{{ issue_title }}</p>
-          {% endif %}
+          <h1 class="mb-0.5 truncate text-base font-bold text-gray-900 sm:mb-1 sm:text-lg">{% if issue_title %}{{ issue_title }}{% if issue_number is not none %} #{{ issue_number }}{% endif %}{% else %}{{ comic_filename }}{% endif %}</h1>
         </div>
         <p class="reader-mobile-heading truncate">
           {{ breadcrumbs[-1].name if breadcrumbs else comic_filename }}
